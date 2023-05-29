@@ -1,0 +1,123 @@
+:root {
+  --background-color: #fff;
+  --text-color: #2C3E50;
+  --border-color:#2C3E50;
+  --primary-color:hsl(158, 49%, 47%);
+}
+
+html {
+  font-family: sans-serif;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  font-size: 14px;
+  height: 100vh;
+  margin: 0;
+  /* grid container settings */
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto 1fr auto;
+  grid-template-areas:
+    "header"
+    "main"
+    "footer";
+}
+
+main {
+  grid-area: main;
+}
+
+header {
+  grid-area: header;
+  padding: 1em;
+}
+
+a {
+  color: var(--primary-color);
+}
+
+footer {
+  padding: 0.8em;
+  font-size: 1em;
+  border-top: 1px solid var(--border-color);
+  grid-area: footer;
+  margin-top: 4em;
+}
+
+h1 {
+  margin: 0;
+  padding: 10px 0;
+}
+
+.mint{
+  color: var(--primary-color);
+}
+
+textarea {
+  font-family: monospace;
+  line-height: 1.25;
+}
+
+.container {
+  display: grid;
+  padding: 1em;
+  background-color: var(--bg-color);
+  grid-template-columns: 1fr 1fr;
+}
+
+.actions {
+  display: grid;
+  padding: 1em;
+  background-color: var(--bg-color);
+  grid-template-columns: 1fr;
+  grid-template-rows: auto 1fr auto;
+}
+
+#mpostcode,
+#result {
+  height: 50vh;
+}
+
+svg {
+  height: 100%;
+}
+
+#log {
+  white-space: pre-wrap;
+}
+
+#mpostcode,
+#target_content {
+  padding: 1em;
+  font-size: 1.2em;
+  resize: none;
+  outline: none;
+  border: 1px solid var(--border-color);
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
+button,
+select {
+  padding: 10px;
+  font-weight: 800;
+  background-color: var(--background-color);
+  color: var(--primary-color);
+  border: 1px solid var(--border-color);
+}
+
+button {
+  min-width: 50%;
+  justify-self: center;
+  cursor: pointer;
+}
+
+progress {
+  height: 4px;
+  width: 100%;
+  display: none;
+  min-width: 50%;
+}
