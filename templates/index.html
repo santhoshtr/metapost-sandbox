@@ -6,12 +6,17 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link id="theme-style" rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
+        <link id="theme-style" rel="stylesheet" href="{{ url_for('static', path='codemirror.css') }}">
         <script src="{{ url_for('static', path='main.js') }}"></script>
+        <script src="{{ url_for('static', path='codemirror.js') }}"></script>
+        <script src="{{ url_for('static', path='metapost.mode.js') }}"></script>
     </head>
 
     <body>
         <header>
-            <h1><span class="mint">Metapost Sandbox</h1>
+            <h1 class="title"> Metapost Sandbox</h1>
+            <button id="b-compile" onclick="doCompile()">Compile</button>
+            <button id="b-save" onclick="save()">Save</button>
         </header>
         <main>
             <section class="container">
@@ -33,17 +38,15 @@ draw z0..z1..z2..z3..z4 withcolor blue;
 endfig;
 end
                 </textarea>
-                <div id="result" disabled></div>
+            <div id="result" disabled></div>
             </section>
-            <section class="actions">
-                <button onclick="doCompile()">Compile</button>
+            <section class="logs">
                 <p id="log"></p>
             </section>
         </main>
 
         <footer>
-            <p>Metapost</p>
-
+            <p>Metapost Sandbox by Santhosh Thottingal </p>
         </footer>
     </body>
 

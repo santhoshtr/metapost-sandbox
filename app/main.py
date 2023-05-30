@@ -1,5 +1,4 @@
 import subprocess
-import boto3
 from fastapi import FastAPI, Request, Response
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -12,8 +11,6 @@ app = FastAPI()
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
-
-S3_BUCKET_NAME = 'your-s3-bucket-name'
 
 def get_unique_file_name():
     return uuid.uuid4().urn[9:15]
@@ -44,8 +41,8 @@ async def compile(request: Request):
     responsejson:dict = json.dumps({
         "id": id,
         "svg": svgcontent,
-        "stdout": str(stdout),
-        "stderr": str(stderr),
+        "stdout": stdout.decode('utf-8'),
+        "stderr": stderr.decode('utf-8'),
     })
     # Remove the temporary files
     os.remove(os.path.join("/tmp", id+".mp"))
@@ -53,17 +50,4 @@ async def compile(request: Request):
     os.remove(os.path.join("/tmp", id+".log"))
     response = Response(content=responsejson, media_type="application/json")
     return response
-
-@app.post('/api/save')
-async def save(request: Request):
-    request_obj = await request.json()
-    svg_data = subprocess.check_output(['mpost', '-', '-svg'], input=request_obj.code)
-
-    s3 = boto3.resource('s3')
-    s3_key = 'your-folder-name/' + 'file_name.svg'
-
-    s3.Bucket(S3_BUCKET_NAME).put_object(Key=s3_key, Body=svg_data, ContentType='image/svg+xml')
-    s3.Bucket(S3_BUCKET_NAME).put_object(Key=s3_key.replace('svg', 'txt'), Body=mp_code, ContentType='text/plain')
-
-    return Response(status_code=200, content='File saved successfully.')
 

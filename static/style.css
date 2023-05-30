@@ -1,8 +1,6 @@
 :root {
-  --background-color: #fff;
-  --text-color: #2C3E50;
-  --border-color:#2C3E50;
-  --primary-color:hsl(158, 49%, 47%);
+  --text-color: #fff;
+  --background-color: #2e3440;
 }
 
 html {
@@ -33,6 +31,13 @@ main {
 header {
   grid-area: header;
   padding: 1em;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  padding-bottom: 0;
+  display: grid;
+  grid-template-columns: 10fr 1fr 1fr;
+  grid-template-areas: "title compile save";
+  align-content: end;
 }
 
 a {
@@ -47,13 +52,14 @@ footer {
   margin-top: 4em;
 }
 
+.logs{
+  border-top: 1px solid var(--border-color);
+}
+
 h1 {
   margin: 0;
   padding: 10px 0;
-}
-
-.mint{
-  color: var(--primary-color);
+  grid-area: title;
 }
 
 textarea {
@@ -63,22 +69,17 @@ textarea {
 
 .container {
   display: grid;
-  padding: 1em;
-  background-color: var(--bg-color);
+  padding: 0;
+  background-color: var(--background-color);
   grid-template-columns: 1fr 1fr;
-}
-
-.actions {
-  display: grid;
-  padding: 1em;
-  background-color: var(--bg-color);
-  grid-template-columns: 1fr;
-  grid-template-rows: auto 1fr auto;
+  height: 75vh;
 }
 
 #mpostcode,
 #result {
-  height: 50vh;
+  height: 75vh;
+  background-color: var(--text-color);
+  margin: 10px;
 }
 
 svg {
@@ -87,6 +88,8 @@ svg {
 
 #log {
   white-space: pre-wrap;
+  margin: 10px;
+  padding: 10px;
 }
 
 #mpostcode,
@@ -100,24 +103,36 @@ svg {
   color: var(--text-color);
 }
 
-button,
-select {
+button {
   padding: 10px;
   font-weight: 800;
   background-color: var(--background-color);
-  color: var(--primary-color);
+  color: var(--text-color);
   border: 1px solid var(--border-color);
-}
-
-button {
-  min-width: 50%;
-  justify-self: center;
+  max-width: 20vw;
   cursor: pointer;
 }
+
+#b-compile {
+  grid-area: compile;
+  justify-self: end;
+}
+
+#b-save {
+  grid-area: save;
+  justify-self: end;
+}
+
 
 progress {
   height: 4px;
   width: 100%;
   display: none;
   min-width: 50%;
+}
+
+.CodeMirror.cm-s-default {
+  height: auto;
+  max-height: 75vh;
+  margin: 1em;
 }
