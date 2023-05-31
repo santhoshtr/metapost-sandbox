@@ -28,7 +28,7 @@ function doCompile(code = placeholdercode) {
     }).then(response => response.json())
         .then(result => {
             if (!result.svg) {
-                document.getElementById('log').innerHTML = result.stderr
+                document.getElementById('log').innerHTML = result.stdout + '\n' + result.stderr;
                 document.getElementById('result').innerHTML = 'Error'
                 return
             }
