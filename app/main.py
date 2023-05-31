@@ -23,7 +23,9 @@ def remove_temp_files(id:str):
     # Remove the temporary files
     extensions: list = [".mp", ".svg", ".log"]
     for ext in extensions:
-        os.remove(os.path.join(temp_dir, id + ext))
+        file_path = os.path.join(temp_dir, id + ext)
+        if os.path.exists(file_path):
+            os.remove(file_path)
 
 @app.get("/", response_class=HTMLResponse)
 async def read_item(request: Request):
