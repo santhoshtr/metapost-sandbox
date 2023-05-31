@@ -4,7 +4,7 @@ WORKDIR /srv
 
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends build-essential unzip wget cmake python
+    apt-get install -y --no-install-recommends build-essential unzip wget cmake python texlive-metapost
 
 COPY ./requirements.txt /srv/requirements.txt
 
