@@ -54,7 +54,7 @@ async def compile(request: Request) -> Response:
     stderr: bytes
     stdout, stderr = process.communicate()
     if process.returncode != 0:
-        remove_temp_files()
+        remove_temp_files(id)
         return Response(
             content=json.dumps(
                 {
@@ -69,7 +69,7 @@ async def compile(request: Request) -> Response:
     with open(os.path.join(temp_dir, id + ".svg"), "r") as svg_file_object:
         svgcontent: str = svg_file_object.read()
 
-    remove_temp_files()
+    remove_temp_files(id)
     responsejson: dict = json.dumps(
         {
             "id": id,
