@@ -40,7 +40,7 @@ async def compile(request: Request) -> Response:
         file_object.write(mp_code)
         file_object.close()
     command_line: str = (
-        f"mpost -s 'outputformat=\"svg\"' -s 'outputtemplate=\"{id}.svg\"' {id}.mp"
+        f"/usr/bin/mpost -s 'outputformat=\"svg\"' -s 'outputtemplate=\"{id}.svg\"' {id}.mp"
     )
     cmd: list = shlex.split(command_line)
     process: subprocess.Popen = subprocess.Popen(
