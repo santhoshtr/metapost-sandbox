@@ -7,6 +7,7 @@ import os
 import json
 import uuid
 import shlex
+import shutil
 import tempfile
 
 app = FastAPI()
@@ -38,6 +39,14 @@ async def compile(request: Request) -> Response:
     temp_dir: str = tempfile.gettempdir()
     id: str = get_unique_file_name()
     mp_code: str = request_obj["code"]
+
+    if not mp_code.strip().endswith("end"):
+        mp_code += "\nend\n"
+
+    if "plain_ex" in mp_code:
+        shutil.copyfile(os.path.join('static', 'plain_ex.mp'),
+                        os.path.join(temp_dir, 'plain_ex.mp'))
+
     with open(os.path.join(temp_dir, id + ".mp"), "w") as file_object:
         file_object.write(mp_code)
         file_object.close()

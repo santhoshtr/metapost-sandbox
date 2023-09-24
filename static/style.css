@@ -1,6 +1,10 @@
 :root {
-  --text-color: #fff;
+  --text-color: #eceff4;
   --background-color: #2e3440;
+  --header-color: #3b4252;
+  --footer-color: #3b4252;
+  --button-color: #3b4252;
+  --border-color: #d8dee9;
 }
 
 html {
@@ -31,7 +35,8 @@ main {
 header {
   grid-area: header;
   padding: 1em;
-  background-color: var(--background-color);
+  background-color: var(--header-color);
+  border-bottom: 1px solid var(--border-color);
   color: var(--text-color);
   padding-bottom: 0;
   display: grid;
@@ -48,6 +53,7 @@ footer {
   padding: 0.8em;
   font-size: 1em;
   border-top: 1px solid var(--border-color);
+  background-color: var(--footer-color);
   grid-area: footer;
   margin-top: 4em;
 }
@@ -78,7 +84,6 @@ textarea {
 #mpostcode,
 #result {
   height: 75vh;
-  background-color: var(--text-color);
   margin: 10px;
 }
 
@@ -106,9 +111,10 @@ svg {
 button {
   padding: 10px;
   font-weight: 800;
-  background-color: var(--background-color);
+  background-color: var(--button-color);
   color: var(--text-color);
-  border: 1px solid var(--border-color);
+  /* border: 1px solid var(--border-color); */
+  border: none;
   max-width: 20vw;
   cursor: pointer;
 }
