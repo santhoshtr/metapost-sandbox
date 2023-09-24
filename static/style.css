@@ -137,7 +137,8 @@ progress {
   min-width: 50%;
 }
 
-.CodeMirror.cm-s-default {
+.CodeMirror.cm-s-default,
+.CodeMirror.cm-s-nord {
   height: auto;
   max-height: 75vh;
   margin: 1em;
