@@ -16,7 +16,7 @@ body {
   background-color: var(--background-color);
   color: var(--text-color);
   font-size: 14px;
-  height: 100vh;
+  min-height: 100vh;
   margin: 0;
   /* grid container settings */
   display: grid;
@@ -30,6 +30,13 @@ body {
 
 main {
   grid-area: main;
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr auto;
+  overflow: hidden;
+  grid-template-areas:
+    "container"
+    "logs"
 }
 
 header {
@@ -55,10 +62,11 @@ footer {
   border-top: 1px solid var(--border-color);
   background-color: var(--footer-color);
   grid-area: footer;
-  margin-top: 4em;
 }
 
 .logs{
+  grid-area: logs;
+  overflow: scroll;
   border-top: 1px solid var(--border-color);
 }
 
@@ -74,11 +82,11 @@ textarea {
 }
 
 .container {
+  grid-area: container;
   display: grid;
   padding: 0;
   background-color: var(--background-color);
   grid-template-columns: 1fr 1fr;
-  height: 75vh;
 }
 
 #mpostcode,
