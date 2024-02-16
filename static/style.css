@@ -48,8 +48,9 @@ header {
   padding-bottom: 0;
   display: grid;
   grid-template-columns: 10fr 1fr 1fr;
-  grid-template-areas: "title compile save";
+  grid-template-areas: "title compile samples";
   align-content: end;
+  align-items: center;
 }
 
 a {
@@ -116,7 +117,7 @@ svg {
   color: var(--text-color);
 }
 
-button {
+.nav-item {
   padding: 10px;
   font-weight: 800;
   background-color: var(--button-color);
@@ -125,6 +126,7 @@ button {
   border: none;
   max-width: 20vw;
   cursor: pointer;
+  text-decoration: none;
 }
 
 #b-compile {
@@ -132,8 +134,8 @@ button {
   justify-self: end;
 }
 
-#b-save {
-  grid-area: save;
+#b-samples {
+  grid-area: samples;
   justify-self: end;
 }
 
