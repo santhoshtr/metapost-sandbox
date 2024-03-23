@@ -9,6 +9,7 @@
 
 html {
   font-family: sans-serif;
+  accent-color: var(--text-color);
 }
 
 body {
@@ -47,8 +48,8 @@ header {
   color: var(--text-color);
   padding-bottom: 0;
   display: grid;
-  grid-template-columns: 10fr 1fr 1fr;
-  grid-template-areas: "title compile samples";
+  grid-template-columns: 4fr 4fr 1fr 1fr 1fr 1fr;
+  grid-template-areas: "title name save compile samples share";
   align-content: end;
   align-items: center;
 }
@@ -75,6 +76,14 @@ h1 {
   margin: 0;
   padding: 10px 0;
   grid-area: title;
+}
+
+.sample-name {
+  grid-area: name;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  padding: 4px;
+  border: none;
 }
 
 textarea {
@@ -128,6 +137,18 @@ svg {
   cursor: pointer;
   text-decoration: none;
 }
+
+#b-save {
+  grid-area: save;
+  justify-self: end;
+}
+
+#b-share {
+  grid-area: share;
+  justify-self: end;
+}
+
+
 
 #b-compile {
   grid-area: compile;

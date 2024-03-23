@@ -1,23 +1,33 @@
-const placeholdercode = `
-beginfig(0);
-width:=100;
-rotation:=45;
+var sampleid = 0;
+var editor;
 
-pen calligraphicpen ;
-calligraphicpen := makepen ((0, 0)--(width,0 ) rotated rotation) ;
+function doSave() {
+    document.getElementById('log').innerText = 'Saving..';
+    if (sampleid > 0) {
+        api = `/api/samples/${sampleid}`
+    } else {
+        api = `/api/samples`
+    }
+    fetch(api, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            name: document.getElementById('name').value,
+            code: editor.getValue()
+        })
+    }).then(response => response.json())
+        .then(result => {
+            document.getElementById('name').value = result.name
+            document.getElementById('log').innerHTML = `Saved the code`
+            sampleid = result.id
+        })
+}
 
-z0 = (x1+150, 0);
-z1 = (0, y0+250);
-z2 = (x1+250, y1+250);
-z3 = (x2+250, y1);
-z4 = (x2, y0);
-pickup calligraphicpen;
-draw z0..z1..z2..z3..z4 withcolor white;
-endfig;
-end
-`
 
-function doCompile(code = placeholdercode) {
+function doCompile() {
+    const code = editor.getValue()
     document.getElementById('log').innerText = 'Compiling..';
     fetch(`/api/compile`, {
         method: 'POST',
@@ -38,17 +48,38 @@ function doCompile(code = placeholdercode) {
 }
 
 
+function doShare() {
+    if (!sampleid || sampleid < 1 ){
+        alert(`Save the work first to share`);
+        return;
+    }
+    var url = `https://${window.location.host}/${sampleid}`
+    try {
+        navigator.clipboard.writeText(url)
+    } catch (err) {
+        //pass
+    }
+    alert(`URL Copied to clipboard: ${url}`);
+}
+
+
+
 document.addEventListener("DOMContentLoaded", (event) => {
-    var editor = CodeMirror.fromTextArea(
+    editor = CodeMirror.fromTextArea(
         document.getElementById('mpostcode'),
         {
             lineNumbers: true,
             mode: "metapost",
             theme: "nord",
-            value: placeholdercode
+            extraKeys: {
+                "Ctrl-S": doSave,
+                "Ctrl-R": doCompile
+            }
         });
-    editor.on("change", (editor) => {
-        doCompile(editor.getValue());
-    });
+    editor.on("change", doCompile);
+    sampleid = parseInt(document.getElementById('sampleid').value);
+    if (sampleid > 0) {
+        doCompile();
+    }
 });
 
