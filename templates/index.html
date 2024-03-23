@@ -22,7 +22,7 @@
 
     <body>
         <header>
-            <h1 class="title"> Metapost Sandbox</h1>
+            <a href="/"><h1 class="title">Metapost Sandbox</h1></a>
             <input class="sample-name" value="{{ name }}" id="name" name="name" />
             <button id="b-save" class="nav-item" onclick="doSave()" title="Save [Control+S]"><span
                     class="material-symbols-outlined">
@@ -42,7 +42,7 @@
                 </span></button>
         </header>
         <main>
-            <input type="hidden" id="sampleid" name="sampleid" value="{{id}}">
+            <input type="hidden" id="slug" name="slug" value="{{id}}">
             <section class="container">
                 <textarea id="mpostcode" oninput="doCompile()">
                     {{code}}

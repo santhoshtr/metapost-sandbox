@@ -4,7 +4,6 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import NullPool
 from pydantic import BaseModel, Field
 from typing import Optional
-from pydantic import parse_obj_as
 
 # Database connection details (replace with your own)
 DATABASE_URL = "postgresql://mpostuser:mpostpassword@127.0.0.1:5432/mpostsandbox"
@@ -16,12 +15,12 @@ Base = declarative_base()
 class Sample(Base):
     __tablename__ = "samples"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(String(256), primary_key=True, nullable=False, index=True)
     name = Column(String(256), nullable=False)
     code = Column(Text, nullable=False)
 
 class SampleModel(BaseModel):
-    id: Optional[int] = None
+    id: str = Field(..., max_length=256, example="name-token")
     name: str = Field(..., max_length=256, example="name")
     code: str = Field(..., example="metapost code")
 

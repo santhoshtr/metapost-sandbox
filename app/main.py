@@ -59,7 +59,7 @@ async def root_view(request: Request):
     return templates.TemplateResponse("index.html", context=context)
 
 @app.get("/{sample_id}", response_class=HTMLResponse)
-async def sample_view(sample_id: int, request: Request,  db: Session = Depends(get_db)):
+async def sample_view(sample_id: str, request: Request,  db: Session = Depends(get_db)):
     sample = db.query(Sample).filter(Sample.id == sample_id).first()
     if sample:
         context = {"request": request,
@@ -71,35 +71,29 @@ async def sample_view(sample_id: int, request: Request,  db: Session = Depends(g
         }
     return templates.TemplateResponse("index.html", context=context)
 
-# Insert a new sample
+# Insert or update a sample
 @app.post("/api/samples")
 def create_sample(sample: SampleModel, db: Session = Depends(get_db))->SampleModel:
-    nsample=Sample()
-    nsample.name = sample.name
-    nsample.code = sample.code
-    db.add(nsample)
+    existing_sample = db.query(Sample).filter(Sample.id == sample.id).first()
+    if not existing_sample:
+        new_sample=Sample()
+        new_sample.id = sample.id
+        new_sample.name = sample.name
+        new_sample.code = sample.code
+        db.add(new_sample)
+    else:
+        existing_sample.name = sample.name
+        existing_sample.code = sample.code
+
     db.commit()
-    db.refresh(nsample)  # Refresh to get generated ID
-    return SampleModel(id=nsample.id, name=nsample.name, code=nsample.code)
+    return SampleModel(id=sample.id, name=sample.name, code=sample.code)
 
 @app.get("/api/samples/{sample_id}")
-def read_sample(sample_id: int, db: Session = Depends(get_db))->SampleModel:
+def read_sample(sample_id: str, db: Session = Depends(get_db))->SampleModel:
     sample = db.query(Sample).filter(Sample.id == sample_id).first()
     if not sample:
         return {"error": "Sample not found"}
     return SampleModel(id=sample.id, name=sample.name, code=sample.code)
-
-# Update a sample by ID
-@app.post("/api/samples/{sample_id}")
-def update_sample(sample_id: int, sample: SampleModel, db: Session = Depends(get_db))->SampleModel:
-    existing_sample = db.query(Sample).filter(Sample.id == sample_id).first()
-    if not existing_sample:
-        return {"error": "Sample not found"}
-
-    existing_sample.name = sample.name
-    existing_sample.code = sample.code
-    db.commit()
-    return SampleModel(id=sample_id, name=sample.name, code=sample.code)
 
 
 @app.post("/api/compile")
