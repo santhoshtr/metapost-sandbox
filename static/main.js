@@ -17,7 +17,7 @@ function onLogin() {
     if (authData.meta) {
         const avatarImg = document.createElement('img');
         avatarImg.src = authData.meta.avatarUrl;
-        avatarImg.width = '24p';
+        avatarImg.width = '24';
         link.appendChild(avatarImg)
     }else{
         link.innerHTML='<span class="material-symbols-outlined">person</span>'
