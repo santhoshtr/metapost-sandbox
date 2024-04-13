@@ -2,27 +2,18 @@
 <html lang="en" dir="ltr">
 
     <head>
-        <title>Metapost Sandbox - {{title}}</title>
+        <title>Metapost Sandbox - my samples</title>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        {% if id %}
-        <meta name="description" content="{{title}}">
-        <meta name="og:description" content="{{title}}">
-        {% else %}
         <meta name="description"
             content="Try Metapost quickly and easily with our online sandbox application! View and preview your results in a user-friendly interface. Perfect for anyone wanting to experiment with Metapost without the hassle of setting up an environment. Start creating illustrations now!">
         <meta property="og:description"
             content="Try Metapost quickly and easily with our online sandbox application! View and preview your results in a user-friendly interface. Perfect for anyone wanting to experiment with Metapost without the hassle of setting up an environment. Start creating illustrations now!">
-
-        {% endif %}
         <link id="theme-style" rel="stylesheet" href="../static/common.css">
-        <link id="theme-style" rel="stylesheet" href="../static/style.css">
+        <link id="theme-style" rel="stylesheet" href="../static/user.css">
         <link id="theme-style" rel="stylesheet" href="../static/codemirror.css">
         <link id="theme-style" rel="stylesheet" href="../static/nord.css">
-        <script src="../static/main.js" type="module"></script>
-        <script defer src="../static/codemirror.js"></script>
-        <script defer src="../static/metapost.mode.js"></script>
         <link rel="stylesheet"
             href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
     </head>
@@ -30,20 +21,20 @@
     <body>
         <header>
             <a href="/"><h1 class="title">Metapost Sandbox</h1></a>
-            <input class="sample-title" value="{{ title }}" id="title" name="title" />
-            <button id="b-save" class="nav-item" title="Save [Control+S]"><span
+            <input class="sample-title hidden" value="{{ title }}" id="title" name="title" />
+            <button id="b-save" disabled class="nav-item hidden"  title="Save [Control+S]"><span
                     class="material-symbols-outlined">
                     save
-                </span></button>
-            <button id="b-compile" class="nav-item" title="Compile [Control+R]"><span
+            </span></button>
+            <button id="b-compile" disabled class="nav-item hidden" title="Compile [Control+R]"><span
                     class="material-symbols-outlined">
                     play_arrow
                 </span></button>
-            <a id="b-samples" class="nav-item" href="https://github.com/santhoshtr/type-concepts/" target="_blank"
+            <a id="b-samples" class="nav-item hidden" href="https://github.com/santhoshtr/type-concepts/" target="_blank"
                 title="Samples"><span class="material-symbols-outlined">
                     menu_book
                 </span></a>
-            <button id="b-share" class="nav-item" title="Login"><span
+            <button id="b-share" disabled class="nav-item hidden" title="Login"><span
                     class="material-symbols-outlined">
                     share
                 </span></button>
@@ -53,16 +44,24 @@
                 </span></button>
         </header>
         <main>
-            <input type="hidden" id="sampleid" name="sampleid" value="{{id}}">
-            <section class="container">
-                <textarea id="metapost" oninput="doCompile()">
-                    {{metapost}}
-                </textarea>
-                <div id="result" disabled></div>
+
+            <section class="container page-user">
+                <section class="samples cards">
+                    {% for item in records %}
+                       <a class="mpost-item card"  href='/m/{{ item.id }}'>
+                            {% if item.svg %}
+                            <div class='result'>{{ item.svg|safe}}</div>
+                            {% else %}
+                            <img  class='result placeholder' src="https://upload.wikimedia.org/wikipedia/commons/1/10/Metapost-icon.svg">
+                            {% endif %}
+                            <h2 class="title">{{item.title}}</h2>
+                            <div class='updated'>{{ item.updated  }}</div>
+                       </a>
+                    {% endfor %}
+
+                </section>
             </section>
-            <section class="logs">
-                <p id="log"></p>
-            </section>
+
         </main>
 
         <footer>

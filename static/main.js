@@ -1,52 +1,86 @@
 
-var editor;
-var access_token;
-const token_key = "metapost_sandbox_token"
-var slug;
+import PocketBase from './pocketbase.es.js'
 
-function slugify(str) {
-    return String(str)
-        .normalize('NFKD') // split accented characters into their base characters and diacritical marks
-        .replace(/[\u0300-\u036f]/g, '') // remove all the accents, which happen to be all in the \u03xx UNICODE block.
-        .trim() // trim leading or trailing whitespace
-        .toLowerCase() // convert to lowercase
-        .replace(/[^a-z0-9 -]/g, '') // remove non-alphanumeric characters
-        .replace(/\s+/g, '-') // replace spaces with hyphens
-        .replace(/-+/g, '-') // remove consecutive hyphens
-        .substring(0, 240);
+var editor;
+var editor, slug, loginBtn, saveBtn, compileBtn, shareBtn, sampleid;
+var pockethost_client;
+var authData;
+
+function onLogin() {
+    if (!authData) {
+        return
+    }
+    const link = document.createElement('a');
+    link.href=`/u/${authData.record.id}`
+    link.title=authData.record.username
+
+    if (authData.meta) {
+        const avatarImg = document.createElement('img');
+        avatarImg.src = authData.meta.avatarUrl;
+        avatarImg.width = '24p';
+        link.appendChild(avatarImg)
+    }else{
+        link.innerHTML='<span class="material-symbols-outlined">person</span>'
+    }
+    loginBtn.innerHTML = ''
+    loginBtn.appendChild(link)
+    saveBtn.removeAttribute("disabled");
 }
 
+async function doGithubLogin() {
+    try {
+        authData = await pockethost_client.collection('users').authWithOAuth2({ provider: 'github' });
+        onLogin()
+
+    } catch (error) {
+        console.error('Login failed:', error);
+    }
+}
+
+async function queryCollection() {
+    try {
+        const collection = pockethost_client.collection('metaposts');
+        const records = await collection.getList();
+        console.dir(records);
+    } catch (error) {
+        console.error('Query failed:', error);
+    }
+}
+
+
 function changeurl(url, title) {
-    var new_url = '/' + url;
+    var new_url = '/m/' + url;
     window.history.pushState('data', title, new_url);
 
 }
 
-function doSave() {
-    document.getElementById('log').innerText = 'Saving..';
-    const name = document.getElementById('name').value;
-    if (!slug || !slug.endsWith(access_token)) {
-        // save as new one
-        slug = `${slugify(name)}-${access_token}`
+async function doSave() {
+    if (!authData){
+        await doGithubLogin()
     }
+    document.getElementById('log').innerText = 'Saving..';
+    const title = document.getElementById('title').value;
+    var record;
+    try {
+        const data = {
+            "author": authData.record.id,
+            "title": title,
+            "metapost": editor.getValue()
+        };
 
-    fetch('/api/samples', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            id: slug,
-            name: name,
-            code: editor.getValue()
-        })
-    }).then(response => response.json())
-        .then(result => {
-            document.getElementById('name').value = result.name
-            document.getElementById('log').innerHTML = `Saved the code`
-            sampleid = result.id
-            changeurl(slug, result.name)
-        })
+        if (sampleid) {
+            record = await pockethost_client.collection('metaposts').update(sampleid, data);
+        } else {
+            record = await pockethost_client.collection('metaposts').create(data);
+            document.getElementById('title').value = result.title
+            sampleid = record.id
+            changeurl(sampleid, title)
+        }
+        document.getElementById('log').innerHTML = `Saved the code`
+    } catch (error) {
+        console.error('Save failed:', error);
+        document.getElementById('log').innerText = `Save failed ${error}`
+    }
 }
 
 
@@ -73,11 +107,11 @@ function doCompile() {
 
 
 function doShare() {
-    if (!slug) {
+    if (!sampleid) {
         alert(`Save the work first to share`);
         return;
     }
-    var url = `https://${window.location.host}/${slug}`
+    var url = `https://${window.location.host}/${sampleid}`
     try {
         navigator.clipboard.writeText(url)
     } catch (err) {
@@ -86,26 +120,22 @@ function doShare() {
     alert(`URL Copied to clipboard: ${url}`);
 }
 
-function setCookie(name, value, days) {
-    let expires = new Date();
-    expires.setDate(expires.getDate() + days);
-    document.cookie = name + '=' + value + '; expires=' + expires.toUTCString() + '; SameSite=Lax ;path=/';
-}
+document.addEventListener("DOMContentLoaded", async (event) => {
+    loginBtn = document.getElementById('b-login');
+    saveBtn = document.getElementById('b-save');
+    compileBtn = document.getElementById('b-compile');
+    shareBtn = document.getElementById('b-share');
 
-function getCookie(name) {
-    let nameEQ = name + "=";
-    let ca = document.cookie.split(';');
-    for (let i = 0; i < ca.length; i++) {
-        let c = ca[i];
-        while (c.charAt(0) == ' ') c = c.substring(1, c.length);
-        if (c.indexOf(nameEQ) == 0) return decodeURIComponent(c.substring(nameEQ.length, c.length));
-    }
-    return null;
-}
+    saveBtn.addEventListener('click', doGithubLogin);
+    compileBtn.addEventListener('click', doCompile);
+    saveBtn.addEventListener('click', doSave);
+    shareBtn.addEventListener('click', doShare);
 
-document.addEventListener("DOMContentLoaded", (event) => {
+    pockethost_client = new PocketBase('https://santhosh.pockethost.io');
+    authData = await pockethost_client.collection('users').authRefresh();
+    onLogin()
     editor = CodeMirror.fromTextArea(
-        document.getElementById('mpostcode'),
+        document.getElementById('metapost'),
         {
             lineNumbers: true,
             mode: "metapost",
@@ -116,15 +146,9 @@ document.addEventListener("DOMContentLoaded", (event) => {
             }
         });
     editor.on("change", doCompile);
-    slug = document.getElementById('slug').value;
-    if (slug) {
+    sampleid = document.getElementById('sampleid').value;
+    if (sampleid) {
         doCompile();
-    }
-
-    access_token = getCookie(token_key)
-    if (!access_token) {
-        access_token = crypto.randomUUID().toString().substr(0, 8);
-        setCookie(token_key, access_token, 365 * 10);
     }
 });
 
