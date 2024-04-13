@@ -9,10 +9,10 @@ body {
   /* grid container settings */
   display: grid;
   grid-template-columns: 1fr;
-  grid-template-rows: auto 1fr auto;
+  grid-template-rows: auto 1fr;
   grid-template-areas:
-    "header"
-    "main";
+    "main"
+    "header";
 }
 
 main {
@@ -20,6 +20,7 @@ main {
   display: grid;
   grid-template-columns: 1fr;
   overflow: hidden;
+  height: 94vh;
   grid-template-areas: "container";
 }
 
@@ -44,9 +45,9 @@ textarea {
 
 header {
     grid-area: header;
-    padding: 1em;
+    padding: 0;
     background-color: var(--header-color);
-    border-bottom: 1px solid var(--border-color);
+    border-top: 1px solid var(--border-color);
     color: var(--text-color);
     padding-bottom: 0;
     display: grid;
@@ -54,6 +55,10 @@ header {
     grid-template-areas: "title edit";
     align-content: end;
     align-items: center;
+    height: 5vh;
+    h1 {
+        font-size: 1em;
+    }
   }
 
   .b-edit{

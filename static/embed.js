@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", async (event) => {
                 lineNumbers: true,
                 mode: "metapost",
                 theme: "nord",
-
+                readOnly: true,
             });
     }
 

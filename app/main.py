@@ -135,6 +135,7 @@ async def sample_view(sample_id: str, request: Request):
             "request": request,
             "id":sample["id"],
             "title":sample["title"],
+            "author": sample["author"],
             "metapost": sample["metapost"],
             "created": sample["created"],
             "updated": sample["updated"],
@@ -177,9 +178,9 @@ async def sample_view(sample_id: str, request: Request):
 
 
 
-@app.get("/u/{userid}", response_class=HTMLResponse)
-async def user_view(userid: str, request: Request):
-    url = f"https://santhosh.pockethost.io/api/collections/metaposts/records?filter=(author='{userid}')"
+@app.get("/u/{username}", response_class=HTMLResponse)
+async def user_view(username: str, request: Request):
+    url = f"https://santhosh.pockethost.io/api/collections/metaposts/records?filter=(author.username='{username}')"
     headers = {
         "Content-Type": "application/json",
     }

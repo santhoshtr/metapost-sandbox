@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="en" dir="ltr">
+
     <head>
         <title>Metapost Sandbox - {{title}}</title>
         <meta charset="utf-8">
@@ -21,12 +22,6 @@
     </head>
 
     <body>
-        <header>
-            <a href="/">
-                <h1 class="title">Metapost Sandbox - {{title}}</h1>
-            </a>
-            <button id="b-edit" class="nav-item" title="Edit"><a href="/m/{{id}}">Edit</a></button>
-        </header>
         <main>
             <section class="container">
                 <textarea id="metapost" readonly>
@@ -35,5 +30,11 @@
                 <div id="result" disabled> {{svg|safe}}</div>
             </section>
         </main>
+        <header>
+            <a href="/m/{{id}}">
+                <h1 class="title"> Metapost Sandbox - {{title}}</h1>
+            </a>
+        </header>
     </body>
+
 </html>

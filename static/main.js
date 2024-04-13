@@ -2,7 +2,7 @@
 import PocketBase from './pocketbase.es.js'
 
 var editor;
-var editor, slug, loginBtn, saveBtn, compileBtn, sampleid;
+var editor, authorid, loginBtn, saveBtn, compileBtn, sampleid;
 var pockethost_client;
 var authData;
 
@@ -11,7 +11,7 @@ function onLogin() {
         return
     }
     const link = document.createElement('a');
-    link.href = `/u/${authData.record.id}`
+    link.href = `/u/${authData.record.username}`
     link.title = authData.record.username
     const avatarImg = document.createElement('img');
     avatarImg.src = `https://github.com/${authData.record.username}.png?size=24`
@@ -33,17 +33,6 @@ async function doGithubLogin() {
     }
 }
 
-async function queryCollection() {
-    try {
-        const collection = pockethost_client.collection('metaposts');
-        const records = await collection.getList();
-        console.dir(records);
-    } catch (error) {
-        console.error('Query failed:', error);
-    }
-}
-
-
 function changeurl(url, title) {
     var new_url = '/m/' + url;
     window.history.pushState('data', title, new_url);
@@ -64,15 +53,17 @@ async function doSave() {
             "metapost": editor.getValue()
         };
 
-        if (sampleid) {
+        if (sampleid && authorid && authorid===authData.record.id) {
             record = await pockethost_client.collection('metaposts').update(sampleid, data);
+            document.getElementById('log').innerHTML = `Updated the code ${sampleid}`
         } else {
             record = await pockethost_client.collection('metaposts').create(data);
             document.getElementById('title').value = result.title
             sampleid = record.id
             changeurl(sampleid, title)
+            document.getElementById('log').innerHTML = `Saved the code: ${sampleid}`
         }
-        document.getElementById('log').innerHTML = `Saved the code`
+
     } catch (error) {
         console.error('Save failed:', error);
         document.getElementById('log').innerText = `Save failed ${error}`
@@ -130,6 +121,7 @@ document.addEventListener("DOMContentLoaded", async (event) => {
             });
         editor.on("change", doCompile);
         sampleid = document.getElementById('sampleid').value;
+        authorid = document.getElementById('authorid').value;
         if (sampleid) {
             doCompile();
         }
