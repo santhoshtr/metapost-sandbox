@@ -150,5 +150,12 @@ document.addEventListener("DOMContentLoaded", async (event) => {
     if (sampleid) {
         doCompile();
     }
+
+    try {
+        authData = await pockethost_client.collection('users').authRefresh();
+        onLogin()
+    } catch (err) {
+        //pass
+    }
 });
 
