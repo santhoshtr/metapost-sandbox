@@ -126,7 +126,7 @@ document.addEventListener("DOMContentLoaded", async (event) => {
     compileBtn = document.getElementById('b-compile');
     shareBtn = document.getElementById('b-share');
 
-    saveBtn.addEventListener('click', doGithubLogin);
+    loginBtn.addEventListener('click', doGithubLogin);
     compileBtn.addEventListener('click', doCompile);
     saveBtn.addEventListener('click', doSave);
     shareBtn.addEventListener('click', doShare);
