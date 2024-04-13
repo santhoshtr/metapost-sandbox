@@ -132,8 +132,7 @@ document.addEventListener("DOMContentLoaded", async (event) => {
     shareBtn.addEventListener('click', doShare);
 
     pockethost_client = new PocketBase('https://santhosh.pockethost.io');
-    authData = await pockethost_client.collection('users').authRefresh();
-    onLogin()
+
     editor = CodeMirror.fromTextArea(
         document.getElementById('metapost'),
         {
