@@ -11,17 +11,13 @@ function onLogin() {
         return
     }
     const link = document.createElement('a');
-    link.href=`/u/${authData.record.id}`
-    link.title=authData.record.username
+    link.href = `/u/${authData.record.id}`
+    link.title = authData.record.username
+    const avatarImg = document.createElement('img');
+    avatarImg.src = `https://github.com/${authData.record.username}.png?size=24`
+    avatarImg.width = '24';
+    link.appendChild(avatarImg)
 
-    if (authData.meta) {
-        const avatarImg = document.createElement('img');
-        avatarImg.src = authData.meta.avatarUrl;
-        avatarImg.width = '24';
-        link.appendChild(avatarImg)
-    }else{
-        link.innerHTML='<span class="material-symbols-outlined">person</span>'
-    }
     loginBtn.innerHTML = ''
     loginBtn.appendChild(link)
     saveBtn.removeAttribute("disabled");
@@ -55,7 +51,7 @@ function changeurl(url, title) {
 }
 
 async function doSave() {
-    if (!authData){
+    if (!authData) {
         await doGithubLogin()
     }
     document.getElementById('log').innerText = 'Saving..';
@@ -133,23 +129,24 @@ document.addEventListener("DOMContentLoaded", async (event) => {
 
     pockethost_client = new PocketBase('https://santhosh.pockethost.io');
 
-    editor = CodeMirror.fromTextArea(
-        document.getElementById('metapost'),
-        {
-            lineNumbers: true,
-            mode: "metapost",
-            theme: "nord",
-            extraKeys: {
-                "Ctrl-S": doSave,
-                "Ctrl-R": doCompile
-            }
-        });
-    editor.on("change", doCompile);
-    sampleid = document.getElementById('sampleid').value;
-    if (sampleid) {
-        doCompile();
+    if (window.CodeMirror) {
+        editor = CodeMirror.fromTextArea(
+            document.getElementById('metapost'),
+            {
+                lineNumbers: true,
+                mode: "metapost",
+                theme: "nord",
+                extraKeys: {
+                    "Ctrl-S": doSave,
+                    "Ctrl-R": doCompile
+                }
+            });
+        editor.on("change", doCompile);
+        sampleid = document.getElementById('sampleid').value;
+        if (sampleid) {
+            doCompile();
+        }
     }
-
     try {
         authData = await pockethost_client.collection('users').authRefresh();
         onLogin()
