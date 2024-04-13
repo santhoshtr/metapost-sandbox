@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+    <head>
+        <title>Metapost Sandbox - {{title}}</title>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        {% if id %}
+        <meta name="description" content="{{title}}">
+        <meta name="og:description" content="{{title}}">
+        {% endif %}
+        <link id="theme-style" rel="stylesheet" href="/static/common.css">
+        <link id="theme-style" rel="stylesheet" href="/static/embed.css">
+        <link id="theme-style" rel="stylesheet" href="/static/codemirror.css">
+        <link id="theme-style" rel="stylesheet" href="/static/nord.css">
+        <script src="/static/embed.js" type="module"></script>
+        <script defer src="/static/codemirror.js"></script>
+        <script defer src="/static/metapost.mode.js"></script>
+        <link rel="stylesheet"
+            href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@2048,100700,01,-50200" />
+    </head>
+
+    <body>
+        <header>
+            <a href="/">
+                <h1 class="title">Metapost Sandbox - {{title}}</h1>
+            </a>
+            <button id="b-edit" class="nav-item" title="Edit"><a href="/m/{{id}}">Edit</a></button>
+        </header>
+        <main>
+            <section class="container">
+                <textarea id="metapost" readonly>
+                    {{metapost}}
+                </textarea>
+                <div id="result" disabled> {{svg|safe}}</div>
+            </section>
+        </main>
+    </body>
+</html>

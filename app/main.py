@@ -145,6 +145,37 @@ async def sample_view(sample_id: str, request: Request):
         }
     return templates.TemplateResponse("index.html", context=context)
 
+@app.get("/m/{sample_id}/embed", response_class=HTMLResponse)
+async def sample_view(sample_id: str, request: Request):
+    url = f"https://santhosh.pockethost.io/api/collections/metaposts/records/{sample_id}"
+    headers = {
+        "Content-Type": "application/json",
+    }
+    response = requests.get(url, headers=headers)
+    sample=None
+    if response.status_code == 200:
+        sample = response.json()
+        result:MetapostResponse = mpost(sample["metapost"])
+        svg = None
+        if result.error == 0:
+            svg = result.svg
+
+        context = {
+            "request": request,
+            "id":sample["id"],
+            "title":sample["title"],
+            "metapost": sample["metapost"],
+            "created": sample["created"],
+            "updated": sample["updated"],
+            "svg": svg
+        }
+    else:
+        context= {
+            "request": request
+        }
+    return templates.TemplateResponse("embed.html", context=context)
+
+
 
 @app.get("/u/{userid}", response_class=HTMLResponse)
 async def user_view(userid: str, request: Request):

@@ -2,7 +2,7 @@
 import PocketBase from './pocketbase.es.js'
 
 var editor;
-var editor, slug, loginBtn, saveBtn, compileBtn, shareBtn, sampleid;
+var editor, slug, loginBtn, saveBtn, compileBtn, sampleid;
 var pockethost_client;
 var authData;
 
@@ -102,30 +102,17 @@ function doCompile() {
 }
 
 
-function doShare() {
-    if (!sampleid) {
-        alert(`Save the work first to share`);
-        return;
-    }
-    var url = `https://${window.location.host}/${sampleid}`
-    try {
-        navigator.clipboard.writeText(url)
-    } catch (err) {
-        //pass
-    }
-    alert(`URL Copied to clipboard: ${url}`);
-}
 
 document.addEventListener("DOMContentLoaded", async (event) => {
     loginBtn = document.getElementById('b-login');
     saveBtn = document.getElementById('b-save');
     compileBtn = document.getElementById('b-compile');
-    shareBtn = document.getElementById('b-share');
+
 
     loginBtn.addEventListener('click', doGithubLogin);
     compileBtn.addEventListener('click', doCompile);
     saveBtn.addEventListener('click', doSave);
-    shareBtn.addEventListener('click', doShare);
+
 
     pockethost_client = new PocketBase('https://santhosh.pockethost.io');
 

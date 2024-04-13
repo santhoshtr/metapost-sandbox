@@ -28,6 +28,7 @@
     </head>
 
     <body>
+
         <header>
             <a href="/"><h1 class="title">Metapost Sandbox</h1></a>
             <input class="sample-title" value="{{ title }}" id="title" name="title" />
@@ -43,7 +44,7 @@
                 title="Samples"><span class="material-symbols-outlined">
                     menu_book
                 </span></a>
-            <button id="b-share" class="nav-item" title="Login"><span
+            <button id="b-share" class="nav-item" title="Share"  popovertarget="share-popover"><span
                     class="material-symbols-outlined">
                     share
                 </span></button>
@@ -53,6 +54,20 @@
                 </span></button>
         </header>
         <main>
+            <div class="share-popover" popover id="share-popover">
+                {% if id %}
+                <section>
+                    <h3>Link to share</h3>
+                    <input value="https://mpost.thottingal.in/m{{id}}"/>
+                    <h3>Embed</h3>
+                    <textarea><iframe height="300" style="width: 100%;" scrolling="no" title="{{title}}" src="https://mpost.thottingal.in/m{{id}}/embed" frameborder="no" loading="lazy" allowtransparency="true" allowfullscreen="true">
+                        </iframe>
+                    </textarea>
+                </section>
+                {% else %}
+                <p>Save the work first to share</p>
+                {% endif %}
+            </div>
             <input type="hidden" id="sampleid" name="sampleid" value="{{id}}">
             <section class="container">
                 <textarea id="metapost" oninput="doCompile()">
