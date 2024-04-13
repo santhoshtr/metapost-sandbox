@@ -102,7 +102,7 @@ def mpost(mp_code:str)->MetapostResponse:
         with open(os.path.join(temp_dir, id + ".svg"), "r") as svg_file_object:
             svgcontent: str = svg_file_object.read()
     else:
-        svgcontent=None
+        svgcontent=""
     remove_temp_files(id)
     return MetapostResponse(
         id=id,
