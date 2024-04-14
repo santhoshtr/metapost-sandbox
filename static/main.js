@@ -58,8 +58,8 @@ async function doSave() {
             document.getElementById('log').innerHTML = `Updated the code ${sampleid}`
         } else {
             record = await pockethost_client.collection('metaposts').create(data);
-            document.getElementById('title').value = result.title
             sampleid = record.id
+            authorid = authData.record.id
             changeurl(sampleid, title)
             document.getElementById('log').innerHTML = `Saved the code: ${sampleid}`
         }
