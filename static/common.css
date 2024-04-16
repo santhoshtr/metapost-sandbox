@@ -174,3 +174,7 @@ svg {
   display: block;
 }
 
+.dropdown-item > a {
+  width: 100%;
+  display: block;
+}

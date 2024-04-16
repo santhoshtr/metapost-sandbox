@@ -131,7 +131,7 @@ document.addEventListener("DOMContentLoaded", async (event) => {
                     "Ctrl-R": doCompile
                 }
             });
-        editor.on("change", doCompile);
+        // editor.on("change", doCompile);
         sampleid = document.getElementById('sampleid').value;
         authorid = document.getElementById('authorid').value;
         if (sampleid) {
