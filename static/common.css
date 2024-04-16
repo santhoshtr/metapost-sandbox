@@ -5,6 +5,7 @@
   --card-color: #3b4252;
   --footer-color: #3b4252;
   --button-color: #3b4252;
+  --button-bg-color-hover: #2e3440;
   --border-color: #d8dee9;
 }
 
@@ -33,16 +34,26 @@ body {
 
 header {
   grid-area: header;
-  padding: 1em;
+  padding:  0 1em;
   background-color: var(--header-color);
-  border-bottom: 1px solid var(--border-color);
+
   color: var(--text-color);
   padding-bottom: 0;
   display: grid;
-  grid-template-columns: 4fr 4fr 1fr 1fr 1fr 1fr 1fr;
-  grid-template-areas: "title name save compile samples share login";
+  grid-template-columns: auto 1fr auto;
+  grid-template-areas: "title name save compile share profile";
   align-content: end;
   align-items: center;
+  .sample-title {
+    background: var(--button-bg-color-hover);
+    color: var(--text-color);
+    padding: 4px;
+    margin: 0 1em;
+    border: 1px solid var(--border-color);
+    border: none;
+    font-weight: bold;
+    font-size: 16px;
+  }
 }
 
 header a {
@@ -76,11 +87,21 @@ svg {
   font-weight: 800;
   background-color: var(--button-color);
   color: var(--text-color);
-  /* border: 1px solid var(--border-color); */
-  border: none;
   max-width: 20vw;
+  border: none;
   cursor: pointer;
   text-decoration: none;
+  white-space: nowrap;
+  display: grid;
+  grid-auto-flow: column;
+  align-items: center;
+  span {
+    padding-inline-end: 4px;
+  }
+}
+
+.nav-item:hover {
+  background-color: var(--button-bg-color-hover);
 }
 
 #b-save {
@@ -92,6 +113,12 @@ svg {
   grid-area: share;
   justify-self: end;
 }
+
+#b-profile {
+  grid-area: profile;
+  justify-self: end;
+}
+
 
 #b-login {
   grid-area: login;
@@ -109,5 +136,41 @@ svg {
 }
 
 .hidden {
-  display: none;
+  display: none !important;
 }
+
+/* Style The Dropdown Button */
+.dropbtn {
+  padding: 16px;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+}
+
+/* The container <div> - needed to position the dropdown content */
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+/* Dropdown Content (Hidden by Default) */
+.dropdown-content {
+  display: none;
+  position: absolute;
+  right: 0;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+}
+
+/* Links inside the dropdown */
+.dropdown-content > div {
+  display: block;
+}
+
+
+/* Show the dropdown menu on hover */
+.dropdown:hover .dropdown-content {
+  display: block;
+}
+

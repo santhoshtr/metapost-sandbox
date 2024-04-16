@@ -2,7 +2,7 @@
 import PocketBase from './pocketbase.es.js'
 
 var editor;
-var editor, authorid, loginBtn, saveBtn, compileBtn, sampleid;
+var editor, authorid, loginBtn, profileBtn, saveBtn, compileBtn, logoutBtn, sampleid;
 var pockethost_client;
 var authData;
 
@@ -10,16 +10,17 @@ function onLogin() {
     if (!authData) {
         return
     }
-    const link = document.createElement('a');
-    link.href = `/u/${authData.record.username}`
-    link.title = authData.record.username
+    const worksLink =  document.getElementById('b-works');;
+    worksLink.href = `/u/${authData.record.username}`
+    worksLink.parentElement.classList.remove('hidden');
     const avatarImg = document.createElement('img');
     avatarImg.src = `https://github.com/${authData.record.username}.png?size=24`
     avatarImg.width = '24';
-    link.appendChild(avatarImg)
 
-    loginBtn.innerHTML = ''
-    loginBtn.appendChild(link)
+    profileBtn.innerHTML = ''
+    profileBtn.appendChild(avatarImg)
+    loginBtn.parentElement.remove()
+    logoutBtn.parentElement.classList.remove('hidden');
     saveBtn.removeAttribute("disabled");
 }
 
@@ -70,6 +71,14 @@ async function doSave() {
     }
 }
 
+function doLogout() {
+    try {
+        pockethost_client.authStore.clear();
+        window.location.href = '/';
+    }catch (error) {
+        console.error('Lgout failed:', error);
+    }
+}
 
 function doCompile() {
     const code = editor.getValue()
@@ -96,13 +105,16 @@ function doCompile() {
 
 document.addEventListener("DOMContentLoaded", async (event) => {
     loginBtn = document.getElementById('b-login');
+    profileBtn = document.getElementById('b-profile');
     saveBtn = document.getElementById('b-save');
     compileBtn = document.getElementById('b-compile');
+    logoutBtn = document.getElementById('b-logout');
 
 
     loginBtn.addEventListener('click', doGithubLogin);
-    compileBtn.addEventListener('click', doCompile);
-    saveBtn.addEventListener('click', doSave);
+    compileBtn && compileBtn.addEventListener('click', doCompile);
+    saveBtn && saveBtn.addEventListener('click', doSave);
+    logoutBtn && logoutBtn.addEventListener('click', doLogout);
 
 
     pockethost_client = new PocketBase('https://santhosh.pockethost.io');

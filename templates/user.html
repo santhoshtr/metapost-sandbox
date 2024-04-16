@@ -22,27 +22,31 @@
     <body>
         <header>
             <a href="/"><h1 class="title">Metapost Sandbox</h1></a>
-            <input class="sample-title hidden" value="{{ title }}" id="title" name="title" />
-            <button id="b-save" disabled class="nav-item hidden"  title="Save [Control+S]"><span
-                    class="material-symbols-outlined">
-                    save
-            </span></button>
-            <button id="b-compile" disabled class="nav-item hidden" title="Compile [Control+R]"><span
-                    class="material-symbols-outlined">
-                    play_arrow
-                </span></button>
-            <a id="b-samples" class="nav-item hidden" href="https://github.com/santhoshtr/type-concepts/" target="_blank"
-                title="Samples"><span class="material-symbols-outlined">
-                    menu_book
-                </span></a>
-            <button id="b-share" disabled class="nav-item hidden" title="Share"><span
-                    class="material-symbols-outlined" >
-                    share
-                </span></button>
-                <button id="b-login" class="nav-item" title="Login using github"><span
-                    class="material-symbols-outlined">
-                    person
-                </span></button>
+
+            <div class="dropdown">
+                <button id="b-profile" class="nav-item"><span class="material-symbols-outlined">
+                        person
+                    </span></button>
+                <div class="dropdown-content">
+                    <div class="nav-item dropdown-item">
+                        <a  href="#" id="b-login">Login using Github</a>
+                    </div>
+                    <div class="nav-item dropdown-item hidden">
+                        <a href="#" id="b-works">My work</a>
+                    </div>
+                    <div class="nav-item dropdown-item hidden">
+                        <a id="b-logout">Log out</a>
+                    </div>
+
+                    <div class="nav-item dropdown-item">
+                        <a href="/documentation"  >Documentation</a>
+                    </div>
+                    <div class="nav-item dropdown-item">
+                        <a href="/about">About</a>
+                    </div>
+                </div>
+                </button>
+            </div>
         </header>
         <main>
             <section class="container page-user">

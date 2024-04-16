@@ -30,35 +30,26 @@
     <body>
 
         <header>
-            <a href="/"><h1 class="title">Metapost Sandbox</h1></a>
+            <a href="/">
+                <h1 class="title">Metapost Sandbox</h1>
+            </a>
             <input class="sample-title" value="{{ title }}" id="title" name="title" />
-            <button id="b-save" class="nav-item" title="Save [Control+S]"><span
-                    class="material-symbols-outlined">
+            <button id="b-save" class="nav-item" title="Save [Control+S]"><span class="material-symbols-outlined">
                     save
-                </span></button>
-            <button id="b-compile" class="nav-item" title="Compile [Control+R]"><span
-                    class="material-symbols-outlined">
+                </span>Save</button>
+            <button id="b-compile" class="nav-item" title="Compile [Control+R]"><span class="material-symbols-outlined">
                     play_arrow
-                </span></button>
-            <a id="b-samples" class="nav-item" href="https://github.com/santhoshtr/type-concepts/" target="_blank"
-                title="Samples"><span class="material-symbols-outlined">
-                    menu_book
-                </span></a>
-            <button id="b-share" class="nav-item" title="Share"  popovertarget="share-popover"><span
+                </span>Run</button>
+
+                <div class="dropdown">
+            <button id="b-share" class="nav-item" title="Share"  ><span
                     class="material-symbols-outlined">
                     share
-                </span></button>
-                <button id="b-login" class="nav-item" title="Login using github"><span
-                    class="material-symbols-outlined">
-                    person
-                </span></button>
-        </header>
-        <main>
-            <div class="share-popover" popover id="share-popover">
+                </span>Share</button> <div class="share-popover dropdown-content">
                 {% if id %}
                 <section>
                     <h3>Link to share</h3>
-                    <input value="https://mpost.thottingal.in/m/{{id}}"/>
+                    <input value="https://mpost.thottingal.in/m/{{id}}" />
                     <h3>Embed</h3>
                     <textarea><iframe height="600" width="1000" scrolling="no" title="{{title}}" src="https://mpost.thottingal.in/m/{{id}}/embed" frameborder="no" loading="lazy" allowtransparency="true" allowfullscreen="true">
                         </iframe>
@@ -68,6 +59,36 @@
                 <p>Save the work first to share</p>
                 {% endif %}
             </div>
+            </div>
+            <div class="dropdown">
+                <button id="b-profile" class="nav-item"><span class="material-symbols-outlined">
+                        person
+                    </span></button>
+                <div class="dropdown-content">
+                    <div class="nav-item dropdown-item">
+                        <a  href="#" id="b-login">Login using Github</a>
+                    </div>
+                    <div class="nav-item dropdown-item hidden">
+                        <a href="#" id="b-works">My work</a>
+                    </div>
+                    <div class="nav-item dropdown-item">
+                        <a href="/">New work</a>
+                    </div>
+                    <div class="nav-item dropdown-item hidden">
+                        <a id="b-logout">Log out</a>
+                    </div>
+
+                    <div class="nav-item dropdown-item">
+                        <a href="/documentation"  >Documentation</a>
+                    </div>
+                    <div class="nav-item dropdown-item">
+                        <a href="/about">About</a>
+                    </div>
+                </div>
+                </button>
+            </div>
+        </header>
+        <main>
             <input type="hidden" id="sampleid" name="sampleid" value="{{id}}">
             <input type="hidden" id="authorid" name="authorid" value="{{author}}">
             <section class="container">
