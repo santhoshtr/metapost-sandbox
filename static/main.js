@@ -10,7 +10,7 @@ function onLogin() {
     if (!authData) {
         return
     }
-    const worksLink =  document.getElementById('b-works');;
+    const worksLink = document.getElementById('b-works');;
     worksLink.href = `/u/${authData.record.username}`
     worksLink.parentElement.classList.remove('hidden');
     const avatarImg = document.createElement('img');
@@ -41,6 +41,11 @@ function changeurl(url, title) {
 }
 
 async function doSave() {
+    try {
+        doCompile();
+    } catch (error) {
+        //pass
+    }
     if (!authData) {
         await doGithubLogin()
     }
@@ -54,7 +59,7 @@ async function doSave() {
             "metapost": editor.getValue()
         };
 
-        if (sampleid && authorid && authorid===authData.record.id) {
+        if (sampleid && authorid && authorid === authData.record.id) {
             record = await pockethost_client.collection('metaposts').update(sampleid, data);
             document.getElementById('log').innerHTML = `Updated the code ${sampleid}`
         } else {
@@ -75,7 +80,7 @@ function doLogout() {
     try {
         pockethost_client.authStore.clear();
         window.location.href = '/';
-    }catch (error) {
+    } catch (error) {
         console.error('Lgout failed:', error);
     }
 }
@@ -116,6 +121,17 @@ document.addEventListener("DOMContentLoaded", async (event) => {
     saveBtn && saveBtn.addEventListener('click', doSave);
     logoutBtn && logoutBtn.addEventListener('click', doLogout);
 
+    const titleElement = document.getElementById('title');
+    titleElement && titleElement.addEventListener('keydown', function (e) {
+        if (e.ctrlKey && (e.key === 's' || e.key === 'S')) {
+            doSave();
+            e.preventDefault();
+        }
+        if (e.key === 'Enter') {
+            doSave();
+            e.preventDefault();
+        }
+    });
 
     pockethost_client = new PocketBase('https://santhosh.pockethost.io');
 
@@ -132,8 +148,8 @@ document.addEventListener("DOMContentLoaded", async (event) => {
                 }
             });
         // editor.on("change", doCompile);
-        sampleid = document.getElementById('sampleid').value;
-        authorid = document.getElementById('authorid').value;
+        sampleid = document.querySelector("meta[name='sampleid']").getAttribute("content");
+        authorid = document.querySelector("meta[name='authorid']").getAttribute("content");
         if (sampleid) {
             doCompile();
         }

@@ -9,6 +9,8 @@
         {% if id %}
         <meta name="description" content="{{title}}">
         <meta name="og:description" content="{{title}}">
+        <meta name="sampleid" content="{{id}}">
+        <meta name="authorid" content="{{author}}">
         {% else %}
         <meta name="description"
             content="Try Metapost quickly and easily with our online sandbox application! View and preview your results in a user-friendly interface. Perfect for anyone wanting to experiment with Metapost without the hassle of setting up an environment. Start creating illustrations now!">
@@ -89,8 +91,6 @@
             </div>
         </header>
         <main>
-            <input type="hidden" id="sampleid" name="sampleid" value="{{id}}">
-            <input type="hidden" id="authorid" name="authorid" value="{{author}}">
             <section class="container">
                 <textarea id="metapost" oninput="doCompile()">
                     {{metapost}}
