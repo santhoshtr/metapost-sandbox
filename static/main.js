@@ -148,8 +148,8 @@ document.addEventListener("DOMContentLoaded", async (event) => {
                 }
             });
         // editor.on("change", doCompile);
-        sampleid = document.querySelector("meta[name='sampleid']").getAttribute("content");
-        authorid = document.querySelector("meta[name='authorid']").getAttribute("content");
+        sampleid = document.querySelector("meta[name='sampleid']")?.getAttribute("content");
+        authorid = document.querySelector("meta[name='authorid']")?.getAttribute("content");
         if (sampleid) {
             doCompile();
         }
