@@ -121,6 +121,20 @@ async def root_view(request: Request):
     }
     return templates.TemplateResponse("index.html", context=context)
 
+@app.get("/documentation", response_class=HTMLResponse)
+async def docs_view(request: Request):
+    context={
+            "request": request,
+    }
+    return templates.TemplateResponse("documentation.html", context=context)
+
+@app.get("/about", response_class=HTMLResponse)
+async def about_view(request: Request):
+    context={
+            "request": request,
+    }
+    return templates.TemplateResponse("about.html", context=context)
+
 @app.get("/m/{sample_id}", response_class=HTMLResponse)
 async def sample_view(sample_id: str, request: Request):
     url = f"https://santhosh.pockethost.io/api/collections/metaposts/records/{sample_id}"
