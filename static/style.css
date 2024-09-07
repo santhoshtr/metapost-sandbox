@@ -39,7 +39,7 @@ h1 {
   grid-area: name;
   background-color: var(--background-color);
   color: var(--text-color);
-  padding: 4px;
+  padding: 0.5em;
   border: none;
 }
 
@@ -62,12 +62,16 @@ textarea {
   margin: 10px;
 }
 
-#result {
-  border-inline-start: 1px solid var(--border-color);
-}
+
+
+  #result {
+    display: inline-block;
+    position: relative;
+  }
+
 
 svg {
-  height: 100%;
+  height: max-content;
 }
 
 #log {

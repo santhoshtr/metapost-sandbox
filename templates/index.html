@@ -20,6 +20,7 @@
         {% endif %}
         <link id="theme-style" rel="stylesheet" href="../static/common.css">
         <link id="theme-style" rel="stylesheet" href="../static/style.css">
+        <link id="theme-style" rel="stylesheet" href="../static/annotate.css">
         <link id="theme-style" rel="stylesheet" href="../static/codemirror.css">
         <link id="theme-style" rel="stylesheet" href="../static/nord.css">
         <script src="../static/main.js" type="module"></script>
@@ -36,12 +37,18 @@
                 <h1 class="title">Metapost Sandbox</h1>
             </a>
             <input class="sample-title" value="{{ title }}" id="title" name="title" />
+<label for="debug" id="check-debug" class="nav-item">Debug<input type="checkbox" id="debug" name="debug" value="debug"
+        checked></label>
             <button id="b-save" class="nav-item" title="Save [Control+S]"><span class="material-symbols-outlined">
                     save
                 </span>Save</button>
             <button id="b-compile" class="nav-item" title="Compile [Control+R]"><span class="material-symbols-outlined">
                     play_arrow
                 </span>Run</button>
+
+                <button id="b-export" class="nav-item" title="Export SVG"><span class="material-symbols-outlined">
+                        download
+                    </span>Export</button>
 
                 <div class="dropdown">
             <button id="b-share" class="nav-item" title="Share"  ><span
@@ -95,7 +102,7 @@
                 <textarea id="metapost" oninput="doCompile()">
                     {{metapost}}
                 </textarea>
-                <div id="result" disabled></div>
+                <div id="result"></div>
             </section>
             <section class="logs">
                 <p id="log"></p>

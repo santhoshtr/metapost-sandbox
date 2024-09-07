@@ -41,7 +41,7 @@ header {
   padding-bottom: 0;
   display: grid;
   grid-template-columns: auto 1fr auto;
-  grid-template-areas: "title name save compile share profile";
+  grid-template-areas: "title name debug save compile export share profile";
   align-content: end;
   align-items: center;
   .sample-title {
@@ -79,7 +79,7 @@ h1 {
 }
 
 svg {
-  width: 100%;
+  width: max-content;
 }
 
 .nav-item {
@@ -130,8 +130,18 @@ svg {
   justify-self: end;
 }
 
+#b-export {
+  grid-area: export;
+  justify-self: end;
+}
+
 #b-samples {
   grid-area: samples;
+  justify-self: end;
+}
+
+#check-debug {
+  grid-area: debug;
   justify-self: end;
 }
 

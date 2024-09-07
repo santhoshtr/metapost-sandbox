@@ -1,8 +1,9 @@
 
 import PocketBase from './pocketbase.es.js'
+import { annotate } from './svgannotate.js'
 
 var editor;
-var editor, authorid, loginBtn, profileBtn, saveBtn, compileBtn, logoutBtn, sampleid;
+var editor, authorid, loginBtn, profileBtn, saveBtn, exportBtn, compileBtn, logoutBtn, sampleid;
 var pockethost_client;
 var authData;
 
@@ -85,6 +86,22 @@ function doLogout() {
     }
 }
 
+function exportSVG() {
+    const svgEl = document.getElementById('result').querySelector('svg');
+    const name = `${sampleid}.svg`;
+    svgEl.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+    var svgData = svgEl.outerHTML;
+    var preface = '<?xml version="1.0" standalone="no"?>\r\n';
+    var svgBlob = new Blob([preface, svgData], { type: "image/svg+xml;charset=utf-8" });
+    var svgUrl = URL.createObjectURL(svgBlob);
+    var downloadLink = document.createElement("a");
+    downloadLink.href = svgUrl;
+    downloadLink.download = name;
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+}
+
 function doCompile() {
     const code = editor.getValue()
     document.getElementById('log').innerText = 'Compiling..';
@@ -103,6 +120,14 @@ function doCompile() {
             }
             document.getElementById('log').innerHTML = result.stdout
             document.getElementById('result').innerHTML = result.svg
+            const originalSVG = document.getElementById('result').querySelector('svg');
+            // incrrease the viewBox of the svg by 10%
+            const width = originalSVG.getAttribute('width');
+            const height = originalSVG.getAttribute('height');
+            const newViewBox = `${-20} ${-20} ${width * 1.1} ${height * 1.1}`;
+            originalSVG.setAttribute('viewBox', newViewBox);
+            originalSVG.setAttribute('id', originalSVG);
+            annotate(originalSVG);
         })
 }
 
@@ -114,9 +139,11 @@ document.addEventListener("DOMContentLoaded", async (event) => {
     saveBtn = document.getElementById('b-save');
     compileBtn = document.getElementById('b-compile');
     logoutBtn = document.getElementById('b-logout');
+    exportBtn = document.getElementById('b-export');
 
 
     loginBtn.addEventListener('click', doGithubLogin);
+    exportBtn?.addEventListener('click', exportSVG);
     compileBtn && compileBtn.addEventListener('click', doCompile);
     saveBtn && saveBtn.addEventListener('click', doSave);
     logoutBtn && logoutBtn.addEventListener('click', doLogout);
@@ -147,7 +174,12 @@ document.addEventListener("DOMContentLoaded", async (event) => {
                     "Ctrl-R": doCompile
                 }
             });
-        // editor.on("change", doCompile);
+        let debouncer;
+        editor.on("change", () => {
+            clearTimeout(debouncer)  //clear any existing timeout
+            debouncer = setTimeout(doCompile, 500);
+
+        });
         sampleid = document.querySelector("meta[name='sampleid']")?.getAttribute("content");
         authorid = document.querySelector("meta[name='authorid']")?.getAttribute("content");
         if (sampleid) {
