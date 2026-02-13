@@ -1,119 +1,164 @@
-body {
-	font-family:
-		-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu,
-		Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
-	background-color: var(--background-color);
-	color: var(--text-color);
-	font-size: 14px;
-	min-height: 100vh;
-	margin: 0;
-	/* grid container settings */
-	display: grid;
-	grid-template-columns: 1fr;
-	grid-template-rows: auto 1fr auto;
-	grid-template-areas:
-		"header"
-		"main"
-		"footer";
-}
+/* Main editor layout styles */
 
 main {
-	grid-area: main;
-	display: grid;
-	grid-template-columns: 1fr;
-	grid-template-rows: 1fr auto;
-	overflow: hidden;
-	grid-template-areas:
-		"container"
-		"logs";
+  grid-area: main;
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr auto;
+  overflow: hidden;
+  grid-template-areas:
+    "container"
+    "logs";
+  min-block-size: 0;
 }
 
 h1 {
-	margin: 0;
-	padding: 10px 0;
-	grid-area: title;
+  margin: 0;
+  padding: var(--space-sm) 0;
+  grid-area: title;
 }
 
 .sample-name {
-	grid-area: name;
-	background-color: var(--background-color);
-	color: var(--text-color);
-	padding: 0.5em;
-	border: none;
+  grid-area: name;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  padding: var(--space-sm);
+  border: none;
 }
 
 textarea {
-	font-family: monospace;
-	line-height: 1.25;
+  font-family: var(--font-mono);
+  line-height: 1.5;
+  field-sizing: content;
 }
 
 .container {
-	grid-area: container;
-	display: grid;
-	padding: 0;
-	background-color: var(--background-color);
-	grid-template-columns: 1fr 1fr;
+  grid-area: container;
+  display: grid;
+  padding: 0;
+  background-color: var(--background-color);
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-md);
+  min-block-size: 0;
+  overflow: hidden;
 }
 
 #mpostcode,
 #result {
-	height: 75vh;
-	margin: 10px;
+  block-size: 75dvh;
+  margin: var(--space-sm);
+  min-block-size: 0;
 }
 
 #result {
-	display: inline-block;
-	position: relative;
+  display: inline-block;
+  position: relative;
+  overflow: auto;
 }
 
 svg {
-	height: max-content;
+  block-size: max-content;
 }
 
 #log {
-	white-space: pre-wrap;
-	margin: 10px;
-	padding: 10px;
+  white-space: pre-wrap;
+  margin: var(--space-sm);
+  padding: var(--space-sm);
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  color: var(--text-muted);
 }
 
 #mpostcode,
 #target_content {
-	padding: 1em;
-	font-size: 1.2em;
-	resize: none;
-	outline: none;
-	border: 1px solid var(--border-color);
-	background-color: var(--background-color);
-	color: var(--text-color);
+  padding: var(--space-md);
+  font-size: 1rem;
+  resize: none;
+  outline: none;
+  border: 1px solid var(--border-color);
+  background-color: var(--background-color);
+  color: var(--text-color);
+  border-radius: var(--space-xs);
+
+  &:focus-visible {
+    border-color: var(--accent-color);
+    box-shadow: var(--focus-ring);
+  }
 }
 
 progress {
-	height: 4px;
-	width: 100%;
-	display: none;
-	min-width: 50%;
+  block-size: 4px;
+  inline-size: 100%;
+  display: none;
+  min-inline-size: 50%;
+  accent-color: var(--accent-color);
 }
 
 .CodeMirror.cm-s-default,
 .CodeMirror.cm-s-nord {
-	height: auto;
-	max-height: 75vh;
+  block-size: auto;
+  max-block-size: 75dvh;
+  border-radius: var(--space-xs);
 }
 
 .logs {
-	grid-area: logs;
-	border-top: 1px solid var(--border-color);
-}
-.share-popover section {
-	background: var(--header-color);
-	display: grid;
-	padding: 8px;
-	input {
-		width: 75ch;
-	}
-	textarea {
-		width: 75ch;
-		height: 10ch;
-	}
+  grid-area: logs;
+  border-block-start: 1px solid var(--border-color);
+  min-block-size: 0;
+  max-block-size: 20dvh;
+  overflow: auto;
 }
 
+.share-popover section {
+  background: var(--surface-color);
+  display: grid;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  border-radius: var(--space-xs);
+
+  h3 {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+  }
+
+  input,
+  textarea {
+    inline-size: 75ch;
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    padding: var(--space-sm);
+    background: var(--background-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--space-xs);
+    color: var(--text-color);
+
+    &:focus-visible {
+      outline: none;
+      border-color: var(--accent-color);
+      box-shadow: var(--focus-ring);
+    }
+  }
+
+  textarea {
+    block-size: 10ch;
+    resize: vertical;
+    field-sizing: content;
+    min-block-size: 6ch;
+    max-block-size: 30ch;
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .container {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr 1fr;
+  }
+
+  #mpostcode,
+  #result {
+    block-size: 50dvh;
+    margin: var(--space-xs);
+  }
+}

@@ -1,49 +1,73 @@
+/* SVG annotation layer styles */
+
 #annotationLayer {
-	display: none;
-	position: absolute;
-	top: 0;
-	left: 0;
+  display: none;
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  pointer-events: none;
 }
+
+/* Debug mode styles */
 body:has(#debug:checked) {
-	#annotationLayer {
-		display: block;
-	}
+  #annotationLayer {
+    display: block;
+    pointer-events: auto;
+  }
 
-	#result {
-		--s: 100px; /* control the size */
+  #result {
+    --grid-size: 100px;
+    --grid-color: oklch(90% 0 0 / 10%);
+    --grid-line: oklch(90% 0 0 / 6%);
 
-		--_g: #0000 90deg, #d8dee910 0;
-		background:
-			conic-gradient(from 90deg at 2px 2px, var(--_g)) 0 0 / var(--s) var(--s),
-			conic-gradient(from 90deg at 1px 1px, var(--_g)) 0 0 / calc(var(--s) / 5)
-			calc(var(--s) / 5);
-		/* compensate for viewport adjustment to see the labels*/
-		background-position-x: 20px;
-		background-position-y: 20px;
-	}
+    background:
+      conic-gradient(from 90deg at 2px 2px, #0000 90deg, var(--grid-line) 0) 0 0 / var(--grid-size) var(--grid-size),
+      conic-gradient(from 90deg at 1px 1px, #0000 90deg, var(--grid-color) 0) 0 0 / calc(var(--grid-size) / 5) calc(var(--grid-size) / 5);
+    /* Compensate for viewport adjustment to see the labels */
+    background-position-x: 20px;
+    background-position-y: 20px;
+  }
 }
+
+/* Annotation elements */
 .annotation {
-	fill: none;
-	stroke: #5e81ac;
+  fill: none;
+  stroke: var(--nord-9);
+  stroke-width: 1px;
 }
+
 .point {
-	fill: #d8dee9;
-	stroke: #bf616a;
-	cursor: pointer;
+  fill: var(--nord-6);
+  stroke: var(--nord-12);
+  stroke-width: 1.5px;
+  cursor: pointer;
+  transition: r var(--transition-fast);
+
+  &:hover {
+    r: 5;
+  }
 }
+
 .control-point {
-	fill: #d8dee9;
-	stroke: #a3be8c;
-	cursor: pointer;
+  fill: var(--nord-6);
+  stroke: var(--nord-14);
+  stroke-width: 1.5px;
+  cursor: pointer;
+  transition: r var(--transition-fast);
+
+  &:hover {
+    r: 5;
+  }
 }
 
 .coordinate-text {
-	font-size: 0.8em;
-	fill: #ebcb8b;
+  font-size: 0.75rem;
+  fill: var(--nord-13);
+  font-family: var(--font-mono);
 }
 
 #originalSVG {
-	path {
-		stroke-width: 1px;
-	}
+  path {
+    stroke-width: 1px;
+  }
 }
