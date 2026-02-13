@@ -20,7 +20,28 @@ Install dependencies using [uv](https://github.com/astral-sh/uv):
 uv sync
 ```
 
-Run it:
+### Configuration
+
+The app uses GitHub Gists for storing saved metapost code and GitHub OAuth for authentication.
+
+1. **Create a GitHub OAuth App** at https://github.com/settings/developers
+   - **Application name**: Metapost Sandbox
+   - **Homepage URL**: `http://localhost:8000` (or your production URL)
+   - **Authorization callback URL**: `http://localhost:8000/`
+
+2. **Copy `.env.example` to `.env`** and fill in your credentials:
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env` with your GitHub OAuth credentials:
+```
+GITHUB_CLIENT_ID=your_client_id_here
+GITHUB_CLIENT_SECRET=your_client_secret_here
+```
+
+3. **Run the app**:
 
 ```bash
 uv run uvicorn app.main:app
