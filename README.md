@@ -14,18 +14,16 @@ Clone the repository. Install the system dependencies:
 sudo apt install wget unzip build-essential cmake texlive-metapost
 ```
 
-Create a python virtual environment and install dependencies
+Install dependencies using [uv](https://github.com/astral-sh/uv):
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
+uv sync
 ```
 
 Run it:
 
 ```bash
-uvicorn app.main:app
+uv run uvicorn app.main:app
 ```
 
 ## Features
