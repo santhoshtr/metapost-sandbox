@@ -321,10 +321,70 @@ async function doCompile() {
  * Initialize the application
  */
 document.addEventListener("DOMContentLoaded", async () => {
-	// Initialize resizable panes
-	initResizer();
+	// Check if we're on the editor page (has the metapost textarea)
+	const textarea = document.getElementById("metapost");
+	const isEditorPage = !!textarea;
 
-	// Check for OAuth callback
+	// Only initialize editor-specific features on the editor page
+	if (isEditorPage) {
+		// Initialize resizable panes
+		initResizer();
+
+		// Cache editor-specific DOM elements
+		const saveBtn = document.getElementById("b-save");
+		const compileBtn = document.getElementById("b-compile");
+		const exportBtn = document.getElementById("b-export");
+		const titleElement = document.getElementById("title");
+
+		// Attach editor-specific event listeners
+		exportBtn?.addEventListener("click", exportSVG);
+		compileBtn?.addEventListener("click", doCompile);
+		saveBtn?.addEventListener("click", doSave);
+
+		// Title input keyboard shortcuts
+		titleElement?.addEventListener("keydown", (e) => {
+			if (e.ctrlKey && (e.key === "s" || e.key === "S")) {
+				e.preventDefault();
+				doSave();
+			} else if (e.key === "Enter") {
+				e.preventDefault();
+				doSave();
+			}
+		});
+
+		// Initialize CodeMirror
+		if (window.CodeMirror) {
+			editor = CodeMirror.fromTextArea(textarea, {
+				lineNumbers: true,
+				mode: "metapost",
+				theme: "nord",
+				extraKeys: {
+					"Ctrl-S": doSave,
+					"Ctrl-R": doCompile,
+				},
+			});
+
+			// Debounced auto-compile
+			editor.on("change", () => {
+				clearTimeout(compileDebouncer);
+				compileDebouncer = setTimeout(doCompile, COMPILE_DELAY);
+			});
+
+			// Load sample data from meta tags
+			sampleId = document
+				.querySelector("meta[name='sampleid']")
+				?.getAttribute("content");
+			authorId = document
+				.querySelector("meta[name='authorid']")
+				?.getAttribute("content");
+
+			if (sampleId) {
+				doCompile();
+			}
+		}
+	}
+
+	// Check for OAuth callback (works on all pages)
 	const userFromCallback = await checkAuthCallback();
 	if (userFromCallback) {
 		currentUser = userFromCallback;
@@ -335,62 +395,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 		onLogin();
 	}
 
-	// Cache DOM elements
+	// Cache common DOM elements (available on all pages)
 	const loginBtn = document.getElementById("b-login");
-	const profileBtn = document.getElementById("b-profile");
-	const saveBtn = document.getElementById("b-save");
-	const compileBtn = document.getElementById("b-compile");
 	const logoutBtn = document.getElementById("b-logout");
-	const exportBtn = document.getElementById("b-export");
-	const titleElement = document.getElementById("title");
 
-	// Attach event listeners
+	// Attach common event listeners
 	loginBtn?.addEventListener("click", doGithubLogin);
-	exportBtn?.addEventListener("click", exportSVG);
-	compileBtn?.addEventListener("click", doCompile);
-	saveBtn?.addEventListener("click", doSave);
 	logoutBtn?.addEventListener("click", doLogout);
-
-	// Title input keyboard shortcuts
-	titleElement?.addEventListener("keydown", (e) => {
-		if (e.ctrlKey && (e.key === "s" || e.key === "S")) {
-			e.preventDefault();
-			doSave();
-		} else if (e.key === "Enter") {
-			e.preventDefault();
-			doSave();
-		}
-	});
-
-	// Initialize CodeMirror
-	const textarea = document.getElementById("metapost");
-	if (window.CodeMirror && textarea) {
-		editor = CodeMirror.fromTextArea(textarea, {
-			lineNumbers: true,
-			mode: "metapost",
-			theme: "nord",
-			extraKeys: {
-				"Ctrl-S": doSave,
-				"Ctrl-R": doCompile,
-			},
-		});
-
-		// Debounced auto-compile
-		editor.on("change", () => {
-			clearTimeout(compileDebouncer);
-			compileDebouncer = setTimeout(doCompile, COMPILE_DELAY);
-		});
-
-		// Load sample data from meta tags
-		sampleId = document
-			.querySelector("meta[name='sampleid']")
-			?.getAttribute("content");
-		authorId = document
-			.querySelector("meta[name='authorid']")
-			?.getAttribute("content");
-
-		if (sampleId) {
-			doCompile();
-		}
-	}
 });
