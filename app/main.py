@@ -5,6 +5,7 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic.dataclasses import dataclass
+from dotenv import load_dotenv
 import os
 import json
 import uuid
@@ -12,6 +13,9 @@ import shlex
 import shutil
 import tempfile
 import requests
+
+# Load environment variables from .env file
+load_dotenv()
 
 
 @dataclass
