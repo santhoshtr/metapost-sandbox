@@ -16,9 +16,81 @@ let compileDebouncer = null;
 
 const PB_URL = "https://santhosh.pockethost.io";
 const COMPILE_DELAY = 500;
+const MIN_PANE_WIDTH = 200;
 
 // Initialize PocketBase client
 const pocketbaseClient = new PocketBase(PB_URL);
+
+/**
+ * Initialize resizable panes
+ */
+function initResizer() {
+	const resizer = document.querySelector(".resizer");
+	const container = document.querySelector(".container");
+	const editorPane = document.querySelector(".editor-pane");
+	const previewPane = document.querySelector(".preview-pane");
+
+	if (!resizer || !container || !editorPane || !previewPane) return;
+
+	// Restore saved layout
+	const savedLayout = localStorage.getItem("editorLayout");
+	if (savedLayout) {
+		container.style.gridTemplateColumns = savedLayout;
+	}
+
+	let isResizing = false;
+	let startX = 0;
+	let startEditorWidth = 0;
+
+	const startResize = (e) => {
+		isResizing = true;
+		startX = e.clientX;
+		startEditorWidth = editorPane.getBoundingClientRect().width;
+
+		container.style.cursor = "col-resize";
+		document.body.style.userSelect = "none";
+
+		e.preventDefault();
+	};
+
+	const resize = (e) => {
+		if (!isResizing) return;
+
+		const containerWidth = container.getBoundingClientRect().width;
+		const resizerWidth = resizer.getBoundingClientRect().width;
+		const deltaX = e.clientX - startX;
+		const newEditorWidth = startEditorWidth + deltaX;
+		const newPreviewWidth = containerWidth - newEditorWidth - resizerWidth;
+
+		// Enforce minimum widths
+		if (newEditorWidth < MIN_PANE_WIDTH || newPreviewWidth < MIN_PANE_WIDTH) {
+			return;
+		}
+
+		const editorFlex = newEditorWidth / containerWidth;
+		const previewFlex = newPreviewWidth / containerWidth;
+
+		const newLayout = `${editorFlex}fr auto ${previewFlex}fr`;
+		container.style.gridTemplateColumns = newLayout;
+	};
+
+	const stopResize = () => {
+		if (!isResizing) return;
+		isResizing = false;
+		container.style.cursor = "";
+		document.body.style.userSelect = "";
+
+		// Save layout to localStorage
+		const currentLayout = container.style.gridTemplateColumns;
+		if (currentLayout) {
+			localStorage.setItem("editorLayout", currentLayout);
+		}
+	};
+
+	resizer.addEventListener("mousedown", startResize);
+	document.addEventListener("mousemove", resize);
+	document.addEventListener("mouseup", stopResize);
+}
 
 /**
  * Update UI after successful login
@@ -237,6 +309,9 @@ async function doCompile() {
  * Initialize the application
  */
 document.addEventListener("DOMContentLoaded", async () => {
+	// Initialize resizable panes
+	initResizer();
+
 	// Cache DOM elements
 	const loginBtn = document.getElementById("b-login");
 	const profileBtn = document.getElementById("b-profile");

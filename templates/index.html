@@ -99,10 +99,15 @@
         </header>
         <main>
             <section class="container">
-                <textarea id="metapost" oninput="doCompile()">
-                    {{metapost}}
-                </textarea>
-                <div id="result"></div>
+                <div class="editor-pane">
+                    <textarea id="metapost" oninput="doCompile()">
+                        {{metapost}}
+                    </textarea>
+                </div>
+                <div class="resizer"></div>
+                <div class="preview-pane">
+                    <div id="result"></div>
+                </div>
             </section>
             <section class="logs">
                 <p id="log"></p>

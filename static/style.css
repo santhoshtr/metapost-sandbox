@@ -37,10 +37,43 @@ textarea {
   display: grid;
   padding: 0;
   background-color: var(--background-color);
-  grid-template-columns: 1fr 1fr;
-  gap: var(--space-md);
+  grid-template-columns: 1fr auto 1fr;
   min-block-size: 0;
   overflow: hidden;
+}
+
+.editor-pane,
+.preview-pane {
+  min-inline-size: 200px;
+  min-block-size: 0;
+  overflow: hidden;
+}
+
+.resizer {
+  inline-size: 8px;
+  background-color: var(--border-color);
+  cursor: col-resize;
+  user-select: none;
+  transition: background-color 0.15s ease;
+  position: relative;
+
+  &:hover,
+  &:active {
+    background-color: var(--accent-color);
+  }
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset-inline-start: 50%;
+    inset-block-start: 50%;
+    transform: translate(-50%, -50%);
+    inline-size: 2px;
+    block-size: 40px;
+    background-color: var(--background-color);
+    border-radius: 1px;
+    opacity: 0.5;
+  }
 }
 
 #mpostcode,
@@ -154,6 +187,10 @@ progress {
   .container {
     grid-template-columns: 1fr;
     grid-template-rows: 1fr 1fr;
+  }
+
+  .resizer {
+    display: none;
   }
 
   #mpostcode,
