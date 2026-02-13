@@ -400,14 +400,7 @@ async def user_view(username: str, request: Request):
         gists = response.json()
         records: List[MetapostSample] = []
 
-        # Limit to first 20 metapost gists to avoid timeout
-        count = 0
-        max_gists = 20
-
         for gist in gists:
-            if count >= max_gists:
-                break
-
             description = gist.get("description", "")
             if "#metapost-sandbox" not in description:
                 continue
@@ -446,70 +439,6 @@ async def user_view(username: str, request: Request):
                     svg=svg,
                 )
                 records.append(record)
-                count += 1
-            except Exception as e:
-                print(f"Error processing gist {gist['id']}: {e}")
-                continue
-
-        context = {"request": request, "records": records}
-        return templates.TemplateResponse("user.html", context=context)
-
-    except Exception as e:
-        import traceback
-
-        print(f"Error in user_view: {e}")
-        print(traceback.format_exc())
-        context = {"request": request, "records": []}
-        return templates.TemplateResponse("user.html", context=context)
-
-        gists = response.json()
-        records: List[MetapostSample] = []
-
-        # Limit to first 20 metapost gists to avoid timeout
-        count = 0
-        max_gists = 20
-
-        for gist in gists:
-            if count >= max_gists:
-                break
-
-            description = gist.get("description", "")
-            if "#metapost-sandbox" not in description:
-                continue
-
-            title = (
-                description.replace("#metapost-sandbox", "").strip()
-                if description
-                else "Untitled"
-            )
-
-            # Fetch the full gist to get the content
-            try:
-                gist_detail_response = requests.get(
-                    f"{GITHUB_API_BASE}/gists/{gist['id']}", timeout=5
-                )
-                if gist_detail_response.status_code != 200:
-                    continue
-
-                gist_detail = gist_detail_response.json()
-                main_file = gist_detail.get("files", {}).get("main.mp", {})
-                code = main_file.get("content", "")
-
-                # Compile for SVG preview
-                result = mpost(code)
-                svg = result.svg if result.error == 0 else None
-
-                record = MetapostSample(
-                    id=gist["id"],
-                    author=gist["owner"]["login"],
-                    title=title,
-                    metapost=code,
-                    created=gist["created_at"],
-                    updated=gist["updated_at"],
-                    svg=svg,
-                )
-                records.append(record)
-                count += 1
             except Exception as e:
                 print(f"Error processing gist {gist['id']}: {e}")
                 continue
