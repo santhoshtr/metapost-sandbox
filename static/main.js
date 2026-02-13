@@ -3,23 +3,31 @@
  * Handles editor initialization, compilation, saving, and user authentication
  */
 
-import PocketBase from "./pocketbase.es.js";
+import {
+	initiateLogin,
+	logout,
+	checkAuthCallback,
+	isAuthenticated,
+	getCurrentUser,
+} from "./github-auth.js";
+import {
+	createGist,
+	updateGist,
+	getGist,
+	listUserGists,
+} from "./gist-client.js";
 import { annotate } from "./svgannotate.js";
 
 // DOM element references
 let editor = null;
 let authorId = null;
 let sampleId = null;
-let authData = null;
+let currentUser = null;
 let compileAbortController = null;
 let compileDebouncer = null;
 
-const PB_URL = "https://santhosh.pockethost.io";
 const COMPILE_DELAY = 500;
 const MIN_PANE_WIDTH = 200;
-
-// Initialize PocketBase client
-const pocketbaseClient = new PocketBase(PB_URL);
 
 /**
  * Initialize resizable panes
@@ -96,18 +104,19 @@ function initResizer() {
  * Update UI after successful login
  */
 function onLogin() {
-	if (!authData?.record) return;
+	currentUser = getCurrentUser();
+	if (!currentUser) return;
 
 	const worksLink = document.getElementById("b-works");
 	if (worksLink) {
-		worksLink.href = `/u/${authData.record.username}`;
+		worksLink.href = `/u/${currentUser.username}`;
 		worksLink.parentElement?.classList.remove("hidden");
 	}
 
 	const profileBtn = document.getElementById("b-profile");
 	if (profileBtn) {
 		const avatarImg = document.createElement("img");
-		avatarImg.src = `https://github.com/${authData.record.username}.png?size=24`;
+		avatarImg.src = currentUser.avatar_url;
 		avatarImg.width = 24;
 		avatarImg.alt = "Profile";
 		avatarImg.loading = "lazy";
@@ -131,10 +140,7 @@ function onLogin() {
  */
 async function doGithubLogin() {
 	try {
-		authData = await pocketbaseClient
-			.collection("users")
-			.authWithOAuth2({ provider: "github" });
-		onLogin();
+		initiateLogin();
 	} catch (error) {
 		console.error("Login failed:", error);
 		showLog(`Login failed: ${error.message}`);
@@ -160,7 +166,7 @@ function showLog(message) {
 }
 
 /**
- * Save current metapost code
+ * Save current metapost code to GitHub Gist
  */
 async function doSave() {
 	// Trigger compile first to validate
@@ -171,9 +177,9 @@ async function doSave() {
 	}
 
 	// Authenticate if needed
-	if (!authData) {
+	if (!isAuthenticated()) {
 		await doGithubLogin();
-		if (!authData) return; // User cancelled login
+		return; // Will redirect to GitHub OAuth
 	}
 
 	showLog("Saving...");
@@ -182,21 +188,28 @@ async function doSave() {
 	const title = titleElement?.value?.trim() || "Untitled";
 
 	try {
-		const data = {
-			author: authData.record.id,
-			title,
-			metapost: editor?.getValue() || "",
-		};
+		const code = editor?.getValue() || "";
 
-		if (sampleId && authorId && authorId === authData.record.id) {
-			await pocketbaseClient.collection("metaposts").update(sampleId, data);
+		if (sampleId && authorId && authorId === currentUser?.username) {
+			// Update existing gist
+			await updateGist(sampleId, title, code);
 			showLog(`Updated: ${sampleId}`);
 		} else {
-			const record = await pocketbaseClient.collection("metaposts").create(data);
-			sampleId = record.id;
-			authorId = authData.record.id;
+			// Create new gist
+			const gist = await createGist(title, code);
+			sampleId = gist.id;
+			authorId = currentUser?.username;
 			updateUrl(sampleId, title);
 			showLog(`Saved: ${sampleId}`);
+
+			// Update meta tag
+			let metaSampleId = document.querySelector("meta[name='sampleid']");
+			if (!metaSampleId) {
+				metaSampleId = document.createElement("meta");
+				metaSampleId.setAttribute("name", "sampleid");
+				document.head.appendChild(metaSampleId);
+			}
+			metaSampleId.setAttribute("content", sampleId);
 		}
 	} catch (error) {
 		console.error("Save failed:", error);
@@ -207,10 +220,9 @@ async function doSave() {
 /**
  * Logout current user
  */
-function doLogout() {
+async function doLogout() {
 	try {
-		pocketbaseClient.authStore.clear();
-		window.location.href = "/";
+		await logout();
 	} catch (error) {
 		console.error("Logout failed:", error);
 	}
@@ -236,7 +248,7 @@ function exportSVG() {
 	}
 
 	const svgData = svgEl.outerHTML;
-	const preface = '<?xml version="1.0" standalone="no"?>\r\n';
+	const preface = '<?xml version="1.0" standalone="no"?>';
 	const blob = new Blob([preface, svgData], {
 		type: "image/svg+xml;charset=utf-8",
 	});
@@ -312,6 +324,17 @@ document.addEventListener("DOMContentLoaded", async () => {
 	// Initialize resizable panes
 	initResizer();
 
+	// Check for OAuth callback
+	const userFromCallback = await checkAuthCallback();
+	if (userFromCallback) {
+		currentUser = userFromCallback;
+		onLogin();
+	} else if (isAuthenticated()) {
+		// User already logged in
+		currentUser = getCurrentUser();
+		onLogin();
+	}
+
 	// Cache DOM elements
 	const loginBtn = document.getElementById("b-login");
 	const profileBtn = document.getElementById("b-profile");
@@ -369,15 +392,5 @@ document.addEventListener("DOMContentLoaded", async () => {
 		if (sampleId) {
 			doCompile();
 		}
-	}
-
-	// Try to restore existing session
-	try {
-		authData = await pocketbaseClient.collection("users").authRefresh();
-		if (authData) {
-			onLogin();
-		}
-	} catch {
-		// No existing session
 	}
 });

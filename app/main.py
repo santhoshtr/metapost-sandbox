@@ -1,7 +1,7 @@
 import subprocess
 from typing import List
 from fastapi import FastAPI, Request, Response
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic.dataclasses import dataclass
@@ -154,95 +154,6 @@ async def about_view(request: Request):
     return templates.TemplateResponse("about.html", context=context)
 
 
-@app.get("/m/{sample_id}", response_class=HTMLResponse)
-async def sample_view(sample_id: str, request: Request):
-    url = (
-        f"https://santhosh.pockethost.io/api/collections/metaposts/records/{sample_id}"
-    )
-    headers = {
-        "Content-Type": "application/json",
-    }
-    response = requests.get(url, headers=headers)
-    sample = None
-    if response.status_code == 200:
-        sample = response.json()
-        context = {
-            "request": request,
-            "id": sample["id"],
-            "title": sample["title"],
-            "author": sample["author"],
-            "metapost": sample["metapost"],
-            "created": sample["created"],
-            "updated": sample["updated"],
-        }
-    else:
-        context = {"request": request}
-    return templates.TemplateResponse("index.html", context=context)
-
-
-@app.get("/m/{sample_id}/embed", response_class=HTMLResponse)
-async def sample_view(sample_id: str, request: Request):
-    url = (
-        f"https://santhosh.pockethost.io/api/collections/metaposts/records/{sample_id}"
-    )
-    headers = {
-        "Content-Type": "application/json",
-    }
-    response = requests.get(url, headers=headers)
-    sample = None
-    if response.status_code == 200:
-        sample = response.json()
-        result: MetapostResponse = mpost(sample["metapost"])
-        svg = None
-        if result.error == 0:
-            svg = result.svg
-
-        context = {
-            "request": request,
-            "id": sample["id"],
-            "title": sample["title"],
-            "metapost": sample["metapost"],
-            "created": sample["created"],
-            "updated": sample["updated"],
-            "svg": svg,
-        }
-    else:
-        context = {"request": request}
-    return templates.TemplateResponse("embed.html", context=context)
-
-
-@app.get("/u/{username}", response_class=HTMLResponse)
-async def user_view(username: str, request: Request):
-    url = f"https://santhosh.pockethost.io/api/collections/metaposts/records?filter=(author.username='{username}')"
-    headers = {
-        "Content-Type": "application/json",
-    }
-    response = requests.get(url, headers=headers)
-    if response.status_code == 200:
-        samples = response.json()
-        records: List[MetapostSample] = []
-        for sample in samples["items"]:
-            result: MetapostResponse = mpost(sample["metapost"])
-            svg = None
-            if result.error == 0:
-                svg = result.svg
-            record = MetapostSample(
-                id=sample["id"],
-                author=sample["author"],
-                title=sample["title"],
-                metapost=sample["metapost"],
-                created=sample["created"],
-                updated=sample["updated"],
-                svg=svg,
-            )
-            records.append(record)
-
-        context = {"request": request, "records": records}
-    else:
-        context = {"request": request}
-    return templates.TemplateResponse("user.html", context=context)
-
-
 @app.post("/api/compile")
 async def compile(request: Request) -> Response:
     request_obj: dict = await request.json()
@@ -273,3 +184,229 @@ async def compile(request: Request) -> Response:
 
     response: Response = Response(content=responsejson, media_type="application/json")
     return response
+
+
+# GitHub OAuth and Gist endpoints
+GITHUB_CLIENT_ID = os.environ.get("GITHUB_CLIENT_ID", "")
+GITHUB_CLIENT_SECRET = os.environ.get("GITHUB_CLIENT_SECRET", "")
+GITHUB_API_BASE = "https://api.github.com"
+
+
+@app.post("/api/auth/github/callback")
+async def github_callback(request: Request):
+    """Exchange GitHub authorization code for access token"""
+    try:
+        data = await request.json()
+        code = data.get("code")
+
+        if not code:
+            return JSONResponse(
+                {"message": "Authorization code required"}, status_code=400
+            )
+
+        # Exchange code for token
+        token_response = requests.post(
+            "https://github.com/login/oauth/access_token",
+            headers={"Accept": "application/json"},
+            data={
+                "client_id": GITHUB_CLIENT_ID,
+                "client_secret": GITHUB_CLIENT_SECRET,
+                "code": code,
+            },
+        )
+
+        token_data = token_response.json()
+        access_token = token_data.get("access_token")
+
+        if not access_token:
+            return JSONResponse(
+                {"message": "Failed to obtain access token"}, status_code=400
+            )
+
+        # Get user info
+        user_response = requests.get(
+            f"{GITHUB_API_BASE}/user",
+            headers={
+                "Authorization": f"token {access_token}",
+                "Accept": "application/vnd.github.v3+json",
+            },
+        )
+
+        if user_response.status_code != 200:
+            return JSONResponse(
+                {"message": "Failed to fetch user info"}, status_code=400
+            )
+
+        user_data = user_response.json()
+
+        response = JSONResponse(
+            {
+                "id": user_data["id"],
+                "username": user_data["login"],
+                "avatar_url": user_data["avatar_url"],
+            }
+        )
+
+        # Set HTTP-only cookie with token
+        response.set_cookie(
+            "github_token",
+            access_token,
+            httponly=True,
+            secure=True,
+            samesite="strict",
+            max_age=86400 * 7,  # 7 days
+        )
+
+        return response
+
+    except Exception as e:
+        return JSONResponse(
+            {"message": f"Authentication failed: {str(e)}"}, status_code=500
+        )
+
+
+@app.post("/api/auth/logout")
+async def logout():
+    """Clear authentication cookie"""
+    response = JSONResponse({"message": "Logged out"})
+    response.delete_cookie("github_token")
+    return response
+
+
+@app.get("/m/{sample_id}", response_class=HTMLResponse)
+async def sample_view(sample_id: str, request: Request):
+    """View a metapost sample from GitHub Gist"""
+    try:
+        # Fetch from GitHub Gists API
+        response = requests.get(f"{GITHUB_API_BASE}/gists/{sample_id}")
+
+        if response.status_code == 404:
+            context = {"request": request}
+            return templates.TemplateResponse("index.html", context=context)
+
+        if response.status_code != 200:
+            context = {"request": request}
+            return templates.TemplateResponse("index.html", context=context)
+
+        gist = response.json()
+
+        # Extract data from gist
+        description = gist.get("description", "")
+        title = (
+            description.replace("#metapost-sandbox", "").strip()
+            if description
+            else "Untitled"
+        )
+
+        main_file = gist.get("files", {}).get("main.mp", {})
+        code = main_file.get("content", "")
+
+        context = {
+            "request": request,
+            "id": gist["id"],
+            "title": title,
+            "author": gist["owner"]["login"],
+            "metapost": code,
+            "created": gist["created_at"],
+            "updated": gist["updated_at"],
+        }
+        return templates.TemplateResponse("index.html", context=context)
+
+    except Exception:
+        context = {"request": request}
+        return templates.TemplateResponse("index.html", context=context)
+
+
+@app.get("/m/{sample_id}/embed", response_class=HTMLResponse)
+async def sample_embed_view(sample_id: str, request: Request):
+    """Embed view of a metapost sample from GitHub Gist"""
+    try:
+        response = requests.get(f"{GITHUB_API_BASE}/gists/{sample_id}")
+
+        if response.status_code != 200:
+            context = {"request": request}
+            return templates.TemplateResponse("embed.html", context=context)
+
+        gist = response.json()
+
+        description = gist.get("description", "")
+        title = (
+            description.replace("#metapost-sandbox", "").strip()
+            if description
+            else "Untitled"
+        )
+
+        main_file = gist.get("files", {}).get("main.mp", {})
+        code = main_file.get("content", "")
+
+        # Compile the metapost code
+        result = mpost(code)
+        svg = result.svg if result.error == 0 else None
+
+        context = {
+            "request": request,
+            "id": gist["id"],
+            "title": title,
+            "metapost": code,
+            "created": gist["created_at"],
+            "updated": gist["updated_at"],
+            "svg": svg,
+        }
+        return templates.TemplateResponse("embed.html", context=context)
+
+    except Exception:
+        context = {"request": request}
+        return templates.TemplateResponse("embed.html", context=context)
+
+
+@app.get("/u/{username}", response_class=HTMLResponse)
+async def user_view(username: str, request: Request):
+    """View user's metapost gists"""
+    try:
+        # Fetch user's gists from GitHub
+        response = requests.get(
+            f"{GITHUB_API_BASE}/users/{username}/gists?per_page=100"
+        )
+
+        if response.status_code != 200:
+            context = {"request": request, "records": []}
+            return templates.TemplateResponse("user.html", context=context)
+
+        gists = response.json()
+        records: List[MetapostSample] = []
+
+        for gist in gists:
+            description = gist.get("description", "")
+            if "#metapost-sandbox" not in description:
+                continue
+
+            title = (
+                description.replace("#metapost-sandbox", "").strip()
+                if description
+                else "Untitled"
+            )
+
+            main_file = gist.get("files", {}).get("main.mp", {})
+            code = main_file.get("content", "")
+
+            # Compile for SVG preview
+            result = mpost(code)
+            svg = result.svg if result.error == 0 else None
+
+            record = MetapostSample(
+                id=gist["id"],
+                author=gist["owner"]["login"],
+                title=title,
+                metapost=code,
+                created=gist["created_at"],
+                updated=gist["updated_at"],
+                svg=svg,
+            )
+            records.append(record)
+
+        context = {"request": request, "records": records}
+        return templates.TemplateResponse("user.html", context=context)
+
+    except Exception:
+        context = {"request": request, "records": []}
+        return templates.TemplateResponse("user.html", context=context)
