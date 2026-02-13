@@ -284,9 +284,10 @@ async def sample_view(sample_id: str, request: Request):
     try:
         # Fetch from GitHub Gists API with auth for higher rate limits
         url = f"{GITHUB_API_BASE}/gists/{sample_id}"
-        if GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET:
-            url += f"?client_id={GITHUB_CLIENT_ID}&client_secret={GITHUB_CLIENT_SECRET}"
-        response = requests.get(url)
+        response = requests.get(
+            url,
+            auth=(GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET),
+        )
 
         if response.status_code == 404:
             context = {"request": request}
@@ -331,9 +332,10 @@ async def sample_embed_view(sample_id: str, request: Request):
     try:
         # Fetch from GitHub Gists API with auth for higher rate limits
         url = f"{GITHUB_API_BASE}/gists/{sample_id}"
-        if GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET:
-            url += f"?client_id={GITHUB_CLIENT_ID}&client_secret={GITHUB_CLIENT_SECRET}"
-        response = requests.get(url)
+        response = requests.get(
+            url,
+            auth=(GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET),
+        )
 
         if response.status_code != 200:
             context = {"request": request}
@@ -384,23 +386,27 @@ async def user_view(username: str, request: Request):
     try:
         # Build URL with authentication for higher rate limits
         list_url = f"{GITHUB_API_BASE}/users/{username}/gists?per_page=100"
-        if GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET:
-            list_url += (
-                f"&client_id={GITHUB_CLIENT_ID}&client_secret={GITHUB_CLIENT_SECRET}"
-            )
-
         # Fetch user's gists from GitHub
-        response = requests.get(list_url, timeout=10)
+        response = requests.get(
+            list_url, auth=(GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET), timeout=10
+        )
 
         if response.status_code != 200:
-            print(f"GitHub API error: {response.status_code} - {response.text[:200]}")
+            print(f"GitHub API error: {response.status_code} - {response.text[:400]}")
             context = {"request": request, "records": []}
             return templates.TemplateResponse("user.html", context=context)
 
         gists = response.json()
         records: List[MetapostSample] = []
 
+        # Limit to first 20 metapost gists to avoid timeout
+        count = 0
+        max_gists = 20
+
         for gist in gists:
+            if count >= max_gists:
+                break
+
             description = gist.get("description", "")
             if "#metapost-sandbox" not in description:
                 continue
@@ -414,10 +420,10 @@ async def user_view(username: str, request: Request):
             # Fetch the full gist to get the content
             try:
                 detail_url = f"{GITHUB_API_BASE}/gists/{gist['id']}"
-                if GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET:
-                    detail_url += f"?client_id={GITHUB_CLIENT_ID}&client_secret={GITHUB_CLIENT_SECRET}"
 
-                gist_detail_response = requests.get(detail_url, timeout=5)
+                gist_detail_response = requests.get(
+                    detail_url, auth=(GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET), timeout=5
+                )
                 if gist_detail_response.status_code != 200:
                     continue
 
@@ -439,6 +445,72 @@ async def user_view(username: str, request: Request):
                     svg=svg,
                 )
                 records.append(record)
+                count += 1
+            except Exception as e:
+                print(f"Error processing gist {gist['id']}: {e}")
+                continue
+
+        context = {"request": request, "records": records}
+        return templates.TemplateResponse("user.html", context=context)
+
+    except Exception as e:
+        import traceback
+
+        print(f"Error in user_view: {e}")
+        print(traceback.format_exc())
+        context = {"request": request, "records": []}
+        return templates.TemplateResponse("user.html", context=context)
+
+        gists = response.json()
+        records: List[MetapostSample] = []
+
+        # Limit to first 20 metapost gists to avoid timeout
+        count = 0
+        max_gists = 20
+
+        for gist in gists:
+            if count >= max_gists:
+                break
+
+            description = gist.get("description", "")
+            if "#metapost-sandbox" not in description:
+                continue
+
+            title = (
+                description.replace("#metapost-sandbox", "").strip()
+                if description
+                else "Untitled"
+            )
+
+            # Fetch the full gist to get the content
+            try:
+                gist_detail_response = requests.get(
+                    f"{GITHUB_API_BASE}/gists/{gist['id']}",
+                    timeout=5,
+                    auth=(GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET),
+                )
+                if gist_detail_response.status_code != 200:
+                    continue
+
+                gist_detail = gist_detail_response.json()
+                main_file = gist_detail.get("files", {}).get("main.mp", {})
+                code = main_file.get("content", "")
+
+                # Compile for SVG preview
+                result = mpost(code)
+                svg = result.svg if result.error == 0 else None
+
+                record = MetapostSample(
+                    id=gist["id"],
+                    author=gist["owner"]["login"],
+                    title=title,
+                    metapost=code,
+                    created=gist["created_at"],
+                    updated=gist["updated_at"],
+                    svg=svg,
+                )
+                records.append(record)
+                count += 1
             except Exception as e:
                 print(f"Error processing gist {gist['id']}: {e}")
                 continue
