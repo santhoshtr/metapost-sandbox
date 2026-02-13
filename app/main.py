@@ -117,11 +117,12 @@ def mpost(mp_code: str) -> MetapostResponse:
             svg="",
         )
 
+    svgcontent = ""
     if process.returncode == 0:
-        with open(os.path.join(temp_dir, id + ".svg"), "r") as svg_file_object:
-            svgcontent: str = svg_file_object.read()
-    else:
-        svgcontent = ""
+        svg_path = os.path.join(temp_dir, id + ".svg")
+        if os.path.exists(svg_path):
+            with open(svg_path, "r") as svg_file_object:
+                svgcontent = svg_file_object.read()
     remove_temp_files(id)
     return MetapostResponse(
         id=id,
@@ -281,8 +282,11 @@ async def logout():
 async def sample_view(sample_id: str, request: Request):
     """View a metapost sample from GitHub Gist"""
     try:
-        # Fetch from GitHub Gists API
-        response = requests.get(f"{GITHUB_API_BASE}/gists/{sample_id}")
+        # Fetch from GitHub Gists API with auth for higher rate limits
+        url = f"{GITHUB_API_BASE}/gists/{sample_id}"
+        if GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET:
+            url += f"?client_id={GITHUB_CLIENT_ID}&client_secret={GITHUB_CLIENT_SECRET}"
+        response = requests.get(url)
 
         if response.status_code == 404:
             context = {"request": request}
@@ -325,7 +329,11 @@ async def sample_view(sample_id: str, request: Request):
 async def sample_embed_view(sample_id: str, request: Request):
     """Embed view of a metapost sample from GitHub Gist"""
     try:
-        response = requests.get(f"{GITHUB_API_BASE}/gists/{sample_id}")
+        # Fetch from GitHub Gists API with auth for higher rate limits
+        url = f"{GITHUB_API_BASE}/gists/{sample_id}"
+        if GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET:
+            url += f"?client_id={GITHUB_CLIENT_ID}&client_secret={GITHUB_CLIENT_SECRET}"
+        response = requests.get(url)
 
         if response.status_code != 200:
             context = {"request": request}
@@ -363,23 +371,43 @@ async def sample_embed_view(sample_id: str, request: Request):
         return templates.TemplateResponse("embed.html", context=context)
 
 
+def get_github_auth_headers():
+    """Get authentication headers for GitHub API requests"""
+    # Use client_id and client_secret for higher rate limits
+    # Format: https://api.github.com/gists?client_id=xxx&client_secret=yyy
+    return {}
+
+
 @app.get("/u/{username}", response_class=HTMLResponse)
 async def user_view(username: str, request: Request):
     """View user's metapost gists"""
     try:
+        # Build URL with authentication for higher rate limits
+        list_url = f"{GITHUB_API_BASE}/users/{username}/gists?per_page=100"
+        if GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET:
+            list_url += (
+                f"&client_id={GITHUB_CLIENT_ID}&client_secret={GITHUB_CLIENT_SECRET}"
+            )
+
         # Fetch user's gists from GitHub
-        response = requests.get(
-            f"{GITHUB_API_BASE}/users/{username}/gists?per_page=100"
-        )
+        response = requests.get(list_url, timeout=10)
 
         if response.status_code != 200:
+            print(f"GitHub API error: {response.status_code} - {response.text[:200]}")
             context = {"request": request, "records": []}
             return templates.TemplateResponse("user.html", context=context)
 
         gists = response.json()
         records: List[MetapostSample] = []
 
+        # Limit to first 20 metapost gists to avoid timeout
+        count = 0
+        max_gists = 20
+
         for gist in gists:
+            if count >= max_gists:
+                break
+
             description = gist.get("description", "")
             if "#metapost-sandbox" not in description:
                 continue
@@ -390,27 +418,109 @@ async def user_view(username: str, request: Request):
                 else "Untitled"
             )
 
-            main_file = gist.get("files", {}).get("main.mp", {})
-            code = main_file.get("content", "")
+            # Fetch the full gist to get the content
+            try:
+                detail_url = f"{GITHUB_API_BASE}/gists/{gist['id']}"
+                if GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET:
+                    detail_url += f"?client_id={GITHUB_CLIENT_ID}&client_secret={GITHUB_CLIENT_SECRET}"
 
-            # Compile for SVG preview
-            result = mpost(code)
-            svg = result.svg if result.error == 0 else None
+                gist_detail_response = requests.get(detail_url, timeout=5)
+                if gist_detail_response.status_code != 200:
+                    continue
 
-            record = MetapostSample(
-                id=gist["id"],
-                author=gist["owner"]["login"],
-                title=title,
-                metapost=code,
-                created=gist["created_at"],
-                updated=gist["updated_at"],
-                svg=svg,
-            )
-            records.append(record)
+                gist_detail = gist_detail_response.json()
+                main_file = gist_detail.get("files", {}).get("main.mp", {})
+                code = main_file.get("content", "")
+
+                # Compile for SVG preview
+                result = mpost(code)
+                svg = result.svg if result.error == 0 else None
+
+                record = MetapostSample(
+                    id=gist["id"],
+                    author=gist["owner"]["login"],
+                    title=title,
+                    metapost=code,
+                    created=gist["created_at"],
+                    updated=gist["updated_at"],
+                    svg=svg,
+                )
+                records.append(record)
+                count += 1
+            except Exception as e:
+                print(f"Error processing gist {gist['id']}: {e}")
+                continue
 
         context = {"request": request, "records": records}
         return templates.TemplateResponse("user.html", context=context)
 
-    except Exception:
+    except Exception as e:
+        import traceback
+
+        print(f"Error in user_view: {e}")
+        print(traceback.format_exc())
+        context = {"request": request, "records": []}
+        return templates.TemplateResponse("user.html", context=context)
+
+        gists = response.json()
+        records: List[MetapostSample] = []
+
+        # Limit to first 20 metapost gists to avoid timeout
+        count = 0
+        max_gists = 20
+
+        for gist in gists:
+            if count >= max_gists:
+                break
+
+            description = gist.get("description", "")
+            if "#metapost-sandbox" not in description:
+                continue
+
+            title = (
+                description.replace("#metapost-sandbox", "").strip()
+                if description
+                else "Untitled"
+            )
+
+            # Fetch the full gist to get the content
+            try:
+                gist_detail_response = requests.get(
+                    f"{GITHUB_API_BASE}/gists/{gist['id']}", timeout=5
+                )
+                if gist_detail_response.status_code != 200:
+                    continue
+
+                gist_detail = gist_detail_response.json()
+                main_file = gist_detail.get("files", {}).get("main.mp", {})
+                code = main_file.get("content", "")
+
+                # Compile for SVG preview
+                result = mpost(code)
+                svg = result.svg if result.error == 0 else None
+
+                record = MetapostSample(
+                    id=gist["id"],
+                    author=gist["owner"]["login"],
+                    title=title,
+                    metapost=code,
+                    created=gist["created_at"],
+                    updated=gist["updated_at"],
+                    svg=svg,
+                )
+                records.append(record)
+                count += 1
+            except Exception as e:
+                print(f"Error processing gist {gist['id']}: {e}")
+                continue
+
+        context = {"request": request, "records": records}
+        return templates.TemplateResponse("user.html", context=context)
+
+    except Exception as e:
+        import traceback
+
+        print(f"Error in user_view: {e}")
+        print(traceback.format_exc())
         context = {"request": request, "records": []}
         return templates.TemplateResponse("user.html", context=context)
