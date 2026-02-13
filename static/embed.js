@@ -1,6 +1,13 @@
-document.addEventListener("DOMContentLoaded", async (event) => {
-	if (window.CodeMirror) {
-		var editor = CodeMirror.fromTextArea(document.getElementById("metapost"), {
+/**
+ * Embed view initialization
+ * Read-only CodeMirror editor for embedded metapost samples
+ */
+
+document.addEventListener("DOMContentLoaded", () => {
+	const textarea = document.getElementById("metapost");
+
+	if (window.CodeMirror && textarea) {
+		CodeMirror.fromTextArea(textarea, {
 			lineNumbers: true,
 			mode: "metapost",
 			theme: "nord",

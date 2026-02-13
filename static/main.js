@@ -1,181 +1,273 @@
+/**
+ * Main application module for Metapost Sandbox
+ * Handles editor initialization, compilation, saving, and user authentication
+ */
+
 import PocketBase from "./pocketbase.es.js";
 import { annotate } from "./svgannotate.js";
 
-var editor;
-var editor,
-	authorid,
-	loginBtn,
-	profileBtn,
-	saveBtn,
-	exportBtn,
-	compileBtn,
-	logoutBtn,
-	sampleid;
-var pockethost_client;
-var authData;
+// DOM element references
+let editor = null;
+let authorId = null;
+let sampleId = null;
+let authData = null;
+let compileAbortController = null;
+let compileDebouncer = null;
 
+const PB_URL = "https://santhosh.pockethost.io";
+const COMPILE_DELAY = 500;
+
+// Initialize PocketBase client
+const pocketbaseClient = new PocketBase(PB_URL);
+
+/**
+ * Update UI after successful login
+ */
 function onLogin() {
-	if (!authData) {
-		return;
-	}
-	const worksLink = document.getElementById("b-works");
-	worksLink.href = `/u/${authData.record.username}`;
-	worksLink.parentElement.classList.remove("hidden");
-	const avatarImg = document.createElement("img");
-	avatarImg.src = `https://github.com/${authData.record.username}.png?size=24`;
-	avatarImg.width = "24";
+	if (!authData?.record) return;
 
-	profileBtn.innerHTML = "";
-	profileBtn.appendChild(avatarImg);
-	loginBtn.parentElement.remove();
-	logoutBtn.parentElement.classList.remove("hidden");
-	saveBtn.removeAttribute("disabled");
+	const worksLink = document.getElementById("b-works");
+	if (worksLink) {
+		worksLink.href = `/u/${authData.record.username}`;
+		worksLink.parentElement?.classList.remove("hidden");
+	}
+
+	const profileBtn = document.getElementById("b-profile");
+	if (profileBtn) {
+		const avatarImg = document.createElement("img");
+		avatarImg.src = `https://github.com/${authData.record.username}.png?size=24`;
+		avatarImg.width = 24;
+		avatarImg.alt = "Profile";
+		avatarImg.loading = "lazy";
+
+		profileBtn.innerHTML = "";
+		profileBtn.appendChild(avatarImg);
+	}
+
+	const loginBtn = document.getElementById("b-login");
+	loginBtn?.parentElement?.remove();
+
+	const logoutBtn = document.getElementById("b-logout");
+	logoutBtn?.parentElement?.classList.remove("hidden");
+
+	const saveBtn = document.getElementById("b-save");
+	saveBtn?.removeAttribute("disabled");
 }
 
+/**
+ * Authenticate user with GitHub OAuth
+ */
 async function doGithubLogin() {
 	try {
-		authData = await pockethost_client
+		authData = await pocketbaseClient
 			.collection("users")
 			.authWithOAuth2({ provider: "github" });
 		onLogin();
 	} catch (error) {
 		console.error("Login failed:", error);
+		showLog(`Login failed: ${error.message}`);
 	}
 }
 
-function changeurl(url, title) {
-	var new_url = "/m/" + url;
-	window.history.pushState("data", title, new_url);
+/**
+ * Update browser URL without page reload
+ */
+function updateUrl(url, title) {
+	const newUrl = `/m/${url}`;
+	window.history.pushState({ data: true }, title, newUrl);
 }
 
+/**
+ * Show message in log area
+ */
+function showLog(message) {
+	const logElement = document.getElementById("log");
+	if (logElement) {
+		logElement.textContent = message;
+	}
+}
+
+/**
+ * Save current metapost code
+ */
 async function doSave() {
+	// Trigger compile first to validate
 	try {
 		doCompile();
-	} catch (error) {
-		//pass
+	} catch {
+		// Continue even if compile fails
 	}
+
+	// Authenticate if needed
 	if (!authData) {
 		await doGithubLogin();
+		if (!authData) return; // User cancelled login
 	}
-	document.getElementById("log").innerText = "Saving..";
-	const title = document.getElementById("title").value;
-	var record;
+
+	showLog("Saving...");
+
+	const titleElement = document.getElementById("title");
+	const title = titleElement?.value?.trim() || "Untitled";
+
 	try {
 		const data = {
 			author: authData.record.id,
-			title: title,
-			metapost: editor.getValue(),
+			title,
+			metapost: editor?.getValue() || "",
 		};
 
-		if (sampleid && authorid && authorid === authData.record.id) {
-			record = await pockethost_client
-				.collection("metaposts")
-				.update(sampleid, data);
-			document.getElementById("log").innerHTML = `Updated the code ${sampleid}`;
+		if (sampleId && authorId && authorId === authData.record.id) {
+			await pocketbaseClient.collection("metaposts").update(sampleId, data);
+			showLog(`Updated: ${sampleId}`);
 		} else {
-			record = await pockethost_client.collection("metaposts").create(data);
-			sampleid = record.id;
-			authorid = authData.record.id;
-			changeurl(sampleid, title);
-			document.getElementById("log").innerHTML = `Saved the code: ${sampleid}`;
+			const record = await pocketbaseClient.collection("metaposts").create(data);
+			sampleId = record.id;
+			authorId = authData.record.id;
+			updateUrl(sampleId, title);
+			showLog(`Saved: ${sampleId}`);
 		}
 	} catch (error) {
 		console.error("Save failed:", error);
-		document.getElementById("log").innerText = `Save failed ${error}`;
+		showLog(`Save failed: ${error.message}`);
 	}
 }
 
+/**
+ * Logout current user
+ */
 function doLogout() {
 	try {
-		pockethost_client.authStore.clear();
+		pocketbaseClient.authStore.clear();
 		window.location.href = "/";
 	} catch (error) {
-		console.error("Lgout failed:", error);
+		console.error("Logout failed:", error);
 	}
 }
 
+/**
+ * Export SVG as downloadable file
+ */
 function exportSVG() {
-	const svgEl = document.getElementById("result").querySelector("svg");
-	const name = `${sampleid}.svg`;
-	svgEl.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-	var svgData = svgEl.outerHTML;
-	var preface = '<?xml version="1.0" standalone="no"?>\r\n';
-	var svgBlob = new Blob([preface, svgData], {
+	const resultElement = document.getElementById("result");
+	const svgEl = resultElement?.querySelector("svg");
+
+	if (!svgEl) {
+		showLog("No SVG to export");
+		return;
+	}
+
+	const fileName = sampleId ? `${sampleId}.svg` : "metapost.svg";
+
+	// Ensure SVG has proper namespace
+	if (!svgEl.getAttribute("xmlns")) {
+		svgEl.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+	}
+
+	const svgData = svgEl.outerHTML;
+	const preface = '<?xml version="1.0" standalone="no"?>\r\n';
+	const blob = new Blob([preface, svgData], {
 		type: "image/svg+xml;charset=utf-8",
 	});
-	var svgUrl = URL.createObjectURL(svgBlob);
-	var downloadLink = document.createElement("a");
-	downloadLink.href = svgUrl;
-	downloadLink.download = name;
-	document.body.appendChild(downloadLink);
-	downloadLink.click();
-	document.body.removeChild(downloadLink);
+
+	const url = URL.createObjectURL(blob);
+	const link = document.createElement("a");
+	link.href = url;
+	link.download = fileName;
+
+	document.body.appendChild(link);
+	link.click();
+	document.body.removeChild(link);
+
+	URL.revokeObjectURL(url);
 }
 
-function doCompile() {
+/**
+ * Compile metapost code and display result
+ */
+async function doCompile() {
+	if (!editor) return;
+
 	const code = editor.getValue();
-	document.getElementById("log").innerText = "Compiling..";
-	fetch(`/api/compile`, {
-		method: "POST",
-		headers: {
-			"Content-Type": "application/json",
-		},
-		body: JSON.stringify({ code }),
-	})
-		.then((response) => response.json())
-		.then((result) => {
-			if (!result.svg) {
-				document.getElementById("log").innerHTML =
-					result.stdout + "\n" + result.stderr;
-				document.getElementById("result").innerHTML = "Error";
-				return;
-			}
-			document.getElementById("log").innerHTML = result.stdout;
-			document.getElementById("result").innerHTML = result.svg;
-			const originalSVG = document
-				.getElementById("result")
-				.querySelector("svg");
-			// incrrease the viewBox of the svg by 10%
-			const width = originalSVG.getAttribute("width");
-			const height = originalSVG.getAttribute("height");
-			const newViewBox = `${-20} ${-20} ${width * 1.1} ${height * 1.1}`;
-			originalSVG.setAttribute("viewBox", newViewBox);
-			originalSVG.setAttribute("id", originalSVG);
-			annotate(originalSVG);
+	showLog("Compiling...");
+
+	// Cancel previous request if still pending
+	if (compileAbortController) {
+		compileAbortController.abort();
+	}
+	compileAbortController = new AbortController();
+
+	try {
+		const response = await fetch("/api/compile", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ code }),
+			signal: compileAbortController.signal,
 		});
+
+		const result = await response.json();
+
+		if (!response.ok || !result.svg) {
+			showLog(`${result.stdout || ""}\n${result.stderr || ""}`.trim());
+			document.getElementById("result").innerHTML = "<p>Error compiling</p>";
+			return;
+		}
+
+		showLog(result.stdout || "Compiled successfully");
+		document.getElementById("result").innerHTML = result.svg;
+
+		const originalSVG = document.querySelector("#result svg");
+		if (originalSVG) {
+			// Expand viewBox by 10% with padding
+			const width = parseFloat(originalSVG.getAttribute("width")) || 0;
+			const height = parseFloat(originalSVG.getAttribute("height")) || 0;
+			const newViewBox = `-20 -20 ${width * 1.1} ${height * 1.1}`;
+
+			originalSVG.setAttribute("viewBox", newViewBox);
+			originalSVG.setAttribute("id", "originalSVG");
+			annotate(originalSVG);
+		}
+	} catch (error) {
+		if (error.name === "AbortError") return;
+		console.error("Compile failed:", error);
+		showLog(`Compile failed: ${error.message}`);
+	}
 }
 
-document.addEventListener("DOMContentLoaded", async (event) => {
-	loginBtn = document.getElementById("b-login");
-	profileBtn = document.getElementById("b-profile");
-	saveBtn = document.getElementById("b-save");
-	compileBtn = document.getElementById("b-compile");
-	logoutBtn = document.getElementById("b-logout");
-	exportBtn = document.getElementById("b-export");
-
-	loginBtn.addEventListener("click", doGithubLogin);
-	exportBtn?.addEventListener("click", exportSVG);
-	compileBtn && compileBtn.addEventListener("click", doCompile);
-	saveBtn && saveBtn.addEventListener("click", doSave);
-	logoutBtn && logoutBtn.addEventListener("click", doLogout);
-
+/**
+ * Initialize the application
+ */
+document.addEventListener("DOMContentLoaded", async () => {
+	// Cache DOM elements
+	const loginBtn = document.getElementById("b-login");
+	const profileBtn = document.getElementById("b-profile");
+	const saveBtn = document.getElementById("b-save");
+	const compileBtn = document.getElementById("b-compile");
+	const logoutBtn = document.getElementById("b-logout");
+	const exportBtn = document.getElementById("b-export");
 	const titleElement = document.getElementById("title");
-	titleElement &&
-		titleElement.addEventListener("keydown", function (e) {
-			if (e.ctrlKey && (e.key === "s" || e.key === "S")) {
-				doSave();
-				e.preventDefault();
-			}
-			if (e.key === "Enter") {
-				doSave();
-				e.preventDefault();
-			}
-		});
 
-	pockethost_client = new PocketBase("https://santhosh.pockethost.io");
+	// Attach event listeners
+	loginBtn?.addEventListener("click", doGithubLogin);
+	exportBtn?.addEventListener("click", exportSVG);
+	compileBtn?.addEventListener("click", doCompile);
+	saveBtn?.addEventListener("click", doSave);
+	logoutBtn?.addEventListener("click", doLogout);
 
-	if (window.CodeMirror) {
-		editor = CodeMirror.fromTextArea(document.getElementById("metapost"), {
+	// Title input keyboard shortcuts
+	titleElement?.addEventListener("keydown", (e) => {
+		if (e.ctrlKey && (e.key === "s" || e.key === "S")) {
+			e.preventDefault();
+			doSave();
+		} else if (e.key === "Enter") {
+			e.preventDefault();
+			doSave();
+		}
+	});
+
+	// Initialize CodeMirror
+	const textarea = document.getElementById("metapost");
+	if (window.CodeMirror && textarea) {
+		editor = CodeMirror.fromTextArea(textarea, {
 			lineNumbers: true,
 			mode: "metapost",
 			theme: "nord",
@@ -184,25 +276,33 @@ document.addEventListener("DOMContentLoaded", async (event) => {
 				"Ctrl-R": doCompile,
 			},
 		});
-		let debouncer;
+
+		// Debounced auto-compile
 		editor.on("change", () => {
-			clearTimeout(debouncer); //clear any existing timeout
-			debouncer = setTimeout(doCompile, 500);
+			clearTimeout(compileDebouncer);
+			compileDebouncer = setTimeout(doCompile, COMPILE_DELAY);
 		});
-		sampleid = document
+
+		// Load sample data from meta tags
+		sampleId = document
 			.querySelector("meta[name='sampleid']")
 			?.getAttribute("content");
-		authorid = document
+		authorId = document
 			.querySelector("meta[name='authorid']")
 			?.getAttribute("content");
-		if (sampleid) {
+
+		if (sampleId) {
 			doCompile();
 		}
 	}
+
+	// Try to restore existing session
 	try {
-		authData = await pockethost_client.collection("users").authRefresh();
-		onLogin();
-	} catch (err) {
-		//pass
+		authData = await pocketbaseClient.collection("users").authRefresh();
+		if (authData) {
+			onLogin();
+		}
+	} catch {
+		// No existing session
 	}
 });
