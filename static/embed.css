@@ -1,98 +1,99 @@
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
-    Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
-  background-color: var(--background-color);
-  color: var(--text-color);
-  font-size: 14px;
-  min-height: 100vh;
-  margin: 0;
-  /* grid container settings */
-  display: grid;
-  grid-template-columns: 1fr;
-  grid-template-rows: auto 1fr;
-  grid-template-areas:
-    "main"
-    "header";
+	font-family:
+		-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu,
+		Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+	background-color: var(--background-color);
+	color: var(--text-color);
+	font-size: 14px;
+	min-height: 100vh;
+	margin: 0;
+	/* grid container settings */
+	display: grid;
+	grid-template-columns: 1fr;
+	grid-template-rows: auto 1fr;
+	grid-template-areas:
+		"main"
+		"header";
 }
 
 main {
-  grid-area: main;
-  display: grid;
-  grid-template-columns: 1fr;
-  overflow: hidden;
-  height: 94vh;
-  grid-template-areas: "container";
+	grid-area: main;
+	display: grid;
+	grid-template-columns: 1fr;
+	overflow: hidden;
+	height: 94vh;
+	grid-template-areas: "container";
 }
 
 h1 {
-  margin: 0;
-  padding: 10px 0;
-  grid-area: title;
+	margin: 0;
+	padding: 10px 0;
+	grid-area: title;
 }
 
 textarea {
-  font-family: monospace;
-  line-height: 1.25;
+	font-family: monospace;
+	line-height: 1.25;
 }
 
 .container {
-  grid-area: container;
-  display: grid;
-  padding: 0;
-  background-color: var(--background-color);
-  grid-template-columns: 1fr 1fr;
+	grid-area: container;
+	display: grid;
+	padding: 0;
+	background-color: var(--background-color);
+	grid-template-columns: 1fr 1fr;
 }
 
 header {
-    grid-area: header;
-    padding: 0;
-    background-color: var(--header-color);
-    border-top: 1px solid var(--border-color);
-    color: var(--text-color);
-    padding-bottom: 0;
-    display: grid;
-    grid-template-columns: 4fr 1fr;
-    grid-template-areas: "title edit";
-    align-content: end;
-    align-items: center;
-    height: 5vh;
-    h1 {
-        font-size: 1em;
-    }
-  }
+	grid-area: header;
+	padding: 0;
+	background-color: var(--header-color);
+	border-top: 1px solid var(--border-color);
+	color: var(--text-color);
+	padding-bottom: 0;
+	display: grid;
+	grid-template-columns: 4fr 1fr;
+	grid-template-areas: "title edit";
+	align-content: end;
+	align-items: center;
+	height: 5vh;
+	h1 {
+		font-size: 1em;
+	}
+}
 
-  .b-edit{
-    grid-area: "edit";
-  }
+.b-edit {
+	grid-area: "edit";
+}
 
 #mpostcode,
 #result {
-  margin: 0;
+	margin: 0;
 }
 
 svg {
-  height: 100%;
+	height: 100%;
 }
 
 #result {
-  border-left: 1px solid var(--border-color);
-  padding: 10px;
+	border-left: 1px solid var(--border-color);
+	padding: 10px;
 }
 
 #mpostcode,
 #target_content {
-  padding: 1em;
-  font-size: 1.2em;
-  resize: none;
-  outline: none;
-  border: 1px solid var(--border-color);
-  background-color: var(--background-color);
-  color: var(--text-color);
+	padding: 1em;
+	font-size: 1.2em;
+	resize: none;
+	outline: none;
+	border: 1px solid var(--border-color);
+	background-color: var(--background-color);
+	color: var(--text-color);
 }
 
 .CodeMirror.cm-s-default,
 .CodeMirror.cm-s-nord {
-  height: auto;
-  max-height: 75vh;
-  margin: 1em;
+	height: auto;
+	max-height: 75vh;
+	margin: 1em;
 }

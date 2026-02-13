@@ -1,190 +1,190 @@
 :root {
-  --text-color: #eceff4;
-  --background-color: #2e3440;
-  --header-color: #3b4252;
-  --card-color: #3b4252;
-  --footer-color: #3b4252;
-  --button-color: #3b4252;
-  --button-bg-color-hover: #2e3440;
-  --border-color: #d8dee9;
+	--text-color: #eceff4;
+	--background-color: #2e3440;
+	--header-color: #3b4252;
+	--card-color: #3b4252;
+	--footer-color: #3b4252;
+	--button-color: #3b4252;
+	--button-bg-color-hover: #2e3440;
+	--border-color: #d8dee9;
 }
 
 html {
-  font-family: sans-serif;
-  accent-color: var(--text-color);
+	font-family: sans-serif;
+	accent-color: var(--text-color);
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
-    Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
-  background-color: var(--background-color);
-  color: var(--text-color);
-  font-size: 14px;
-  min-height: 100vh;
-  margin: 0;
-  /* grid container settings */
-  display: grid;
-  grid-template-columns: 1fr;
-  grid-template-rows: auto 1fr auto;
-  grid-template-areas:
-    "header"
-    "main"
-    "footer";
+	font-family:
+		-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu,
+		Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+	background-color: var(--background-color);
+	color: var(--text-color);
+	font-size: 14px;
+	min-height: 100vh;
+	margin: 0;
+	/* grid container settings */
+	display: grid;
+	grid-template-columns: 1fr;
+	grid-template-rows: auto 1fr auto;
+	grid-template-areas:
+		"header"
+		"main"
+		"footer";
 }
 
 header {
-  grid-area: header;
-  padding:  0 1em;
-  background-color: var(--header-color);
+	grid-area: header;
+	padding: 0 1em;
+	background-color: var(--header-color);
 
-  color: var(--text-color);
-  padding-bottom: 0;
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  grid-template-areas: "title name debug save compile export share profile";
-  align-content: end;
-  align-items: center;
-  .sample-title {
-    background: var(--button-bg-color-hover);
-    color: var(--text-color);
-    padding: 4px;
-    margin: 0 1em;
-    border: 1px solid var(--border-color);
-    border: none;
-    font-weight: bold;
-    font-size: 16px;
-  }
+	color: var(--text-color);
+	padding-bottom: 0;
+	display: grid;
+	grid-template-columns: auto 1fr auto;
+	grid-template-areas: "title name debug save compile export share profile";
+	align-content: end;
+	align-items: center;
+	.sample-title {
+		background: var(--button-bg-color-hover);
+		color: var(--text-color);
+		padding: 4px;
+		margin: 0 1em;
+		border: 1px solid var(--border-color);
+		border: none;
+		font-weight: bold;
+		font-size: 16px;
+	}
 }
 
 header a {
-  text-decoration: none;
+	text-decoration: none;
 }
 
 a {
-  color: var(--primary-color);
+	color: var(--primary-color);
 }
 
 footer {
-  padding: 0.8em;
-  font-size: 1em;
-  border-top: 1px solid var(--border-color);
-  background-color: var(--footer-color);
-  grid-area: footer;
+	padding: 0.8em;
+	font-size: 1em;
+	border-top: 1px solid var(--border-color);
+	background-color: var(--footer-color);
+	grid-area: footer;
 }
 
 h1 {
-  margin: 0;
-  padding: 10px 0;
-  grid-area: title;
+	margin: 0;
+	padding: 10px 0;
+	grid-area: title;
 }
 
 svg {
-  width: max-content;
+	width: max-content;
 }
 
 .nav-item {
-  padding: 10px;
-  font-weight: 800;
-  background-color: var(--button-color);
-  color: var(--text-color);
-  max-width: 20vw;
-  border: none;
-  cursor: pointer;
-  text-decoration: none;
-  white-space: nowrap;
-  display: grid;
-  grid-auto-flow: column;
-  align-items: center;
-  span {
-    padding-inline-end: 4px;
-  }
+	padding: 10px;
+	font-weight: 800;
+	background-color: var(--button-color);
+	color: var(--text-color);
+	max-width: 20vw;
+	border: none;
+	cursor: pointer;
+	text-decoration: none;
+	white-space: nowrap;
+	display: grid;
+	grid-auto-flow: column;
+	align-items: center;
+	span {
+		padding-inline-end: 4px;
+	}
 }
 
 .nav-item:hover {
-  background-color: var(--button-bg-color-hover);
+	background-color: var(--button-bg-color-hover);
 }
 
 #b-save {
-  grid-area: save;
-  justify-self: end;
+	grid-area: save;
+	justify-self: end;
 }
 
 #b-share {
-  grid-area: share;
-  justify-self: end;
+	grid-area: share;
+	justify-self: end;
 }
 
 #b-profile {
-  grid-area: profile;
-  justify-self: end;
+	grid-area: profile;
+	justify-self: end;
 }
 
-
 #b-login {
-  grid-area: login;
-  justify-self: end;
+	grid-area: login;
+	justify-self: end;
 }
 
 #b-compile {
-  grid-area: compile;
-  justify-self: end;
+	grid-area: compile;
+	justify-self: end;
 }
 
 #b-export {
-  grid-area: export;
-  justify-self: end;
+	grid-area: export;
+	justify-self: end;
 }
 
 #b-samples {
-  grid-area: samples;
-  justify-self: end;
+	grid-area: samples;
+	justify-self: end;
 }
 
 #check-debug {
-  grid-area: debug;
-  justify-self: end;
+	grid-area: debug;
+	justify-self: end;
 }
 
 .hidden {
-  display: none !important;
+	display: none !important;
 }
 
 /* Style The Dropdown Button */
 .dropbtn {
-  padding: 16px;
-  font-size: 16px;
-  border: none;
-  cursor: pointer;
+	padding: 16px;
+	font-size: 16px;
+	border: none;
+	cursor: pointer;
 }
 
 /* The container <div> - needed to position the dropdown content */
 .dropdown {
-  position: relative;
-  display: inline-block;
+	position: relative;
+	display: inline-block;
 }
 
 /* Dropdown Content (Hidden by Default) */
 .dropdown-content {
-  display: none;
-  position: absolute;
-  right: 0;
-  min-width: 160px;
-  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-  z-index: 1;
+	display: none;
+	position: absolute;
+	right: 0;
+	min-width: 160px;
+	box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+	z-index: 1;
 }
 
 /* Links inside the dropdown */
 .dropdown-content > div {
-  display: block;
+	display: block;
 }
-
 
 /* Show the dropdown menu on hover */
 .dropdown:hover .dropdown-content {
-  display: block;
+	display: block;
 }
 
 .dropdown-item > a {
-  width: 100%;
-  display: block;
+	width: 100%;
+	display: block;
 }
+
