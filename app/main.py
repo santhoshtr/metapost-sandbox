@@ -278,6 +278,84 @@ async def logout():
     return response
 
 
+@app.post("/api/gists")
+async def create_gist(request: Request):
+    """Create a new gist via backend (avoids CORS)"""
+    try:
+        github_token = request.cookies.get("github_token")
+        if not github_token:
+            return JSONResponse({"message": "Not authenticated"}, status_code=401)
+
+        data = await request.json()
+        description = data.get("description", "")
+        public = data.get("public", True)
+        files = data.get("files", {})
+
+        response = requests.post(
+            f"{GITHUB_API_BASE}/gists",
+            headers={
+                "Authorization": f"token {github_token}",
+                "Accept": "application/vnd.github.v3+json",
+            },
+            json={
+                "description": description,
+                "public": public,
+                "files": files,
+            },
+        )
+
+        if response.status_code != 201:
+            return JSONResponse(
+                {"message": "Failed to create gist", "error": response.text},
+                status_code=response.status_code,
+            )
+
+        return JSONResponse(response.json())
+
+    except Exception as e:
+        return JSONResponse(
+            {"message": f"Failed to create gist: {str(e)}"}, status_code=500
+        )
+
+
+@app.patch("/api/gists/{gist_id}")
+async def update_gist(gist_id: str, request: Request):
+    """Update an existing gist via backend (avoids CORS)"""
+    try:
+        github_token = request.cookies.get("github_token")
+        if not github_token:
+            return JSONResponse({"message": "Not authenticated"}, status_code=401)
+
+        data = await request.json()
+        description = data.get("description", "")
+        files = data.get("files", {})
+
+        response = requests.patch(
+            f"{GITHUB_API_BASE}/gists/{gist_id}",
+            headers={
+                "Authorization": f"token {github_token}",
+                "Accept": "application/vnd.github.v3+json",
+            },
+            json={
+                "description": description,
+                "files": files,
+            },
+        )
+
+        if response.status_code != 200:
+            return JSONResponse(
+                {"message": "Failed to update gist", "error": response.text},
+                status_code=response.status_code,
+            )
+
+        return JSONResponse(response.json())
+
+    except Exception as e:
+        return JSONResponse(
+            {"message": f"Failed to update gist: {str(e)}"}, status_code=500
+        )
+
+
 @app.get("/m/{sample_id}", response_class=HTMLResponse)
 async def sample_view(sample_id: str, request: Request):
     """View a metapost sample from GitHub Gist"""

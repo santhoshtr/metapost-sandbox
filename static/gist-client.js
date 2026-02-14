@@ -8,12 +8,13 @@ const METAPOST_TAG = "#metapost-sandbox";
 
 /**
  * Create a new gist with metapost code
+ * Uses backend proxy to avoid CORS issues
  * @param {string} title - The title/description
  * @param {string} code - The metapost code
  * @returns {Promise<Object>} Created gist data
  */
 export async function createGist(title, code) {
-	const response = await fetch(`${GITHUB_API_BASE}/gists`, {
+	const response = await fetch("/api/gists", {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json",
@@ -40,13 +41,14 @@ export async function createGist(title, code) {
 
 /**
  * Update an existing gist
+ * Uses backend proxy to avoid CORS issues
  * @param {string} gistId - The gist ID
  * @param {string} title - The new title
  * @param {string} code - The new code
  * @returns {Promise<Object>} Updated gist data
  */
 export async function updateGist(gistId, title, code) {
-	const response = await fetch(`${GITHUB_API_BASE}/gists/${gistId}`, {
+	const response = await fetch(`/api/gists/${gistId}`, {
 		method: "PATCH",
 		headers: {
 			"Content-Type": "application/json",
@@ -98,7 +100,7 @@ export async function getGist(gistId) {
  */
 export async function listUserGists(username) {
 	const response = await fetch(
-		`${GITHUB_API_BASE}/users/${username}/gists?per_page=100`
+		`${GITHUB_API_BASE}/users/${username}/gists?per_page=100`,
 	);
 
 	if (!response.ok) {
@@ -110,7 +112,9 @@ export async function listUserGists(username) {
 
 	// Filter for metapost-sandbox gists and format
 	return gists
-		.filter((gist) => gist.description && gist.description.includes(METAPOST_TAG))
+		.filter(
+			(gist) => gist.description && gist.description.includes(METAPOST_TAG),
+		)
 		.map(formatGist);
 }
 
@@ -132,7 +136,9 @@ export async function listMyGists() {
 
 	// Filter for metapost-sandbox gists and format
 	return gists
-		.filter((gist) => gist.description && gist.description.includes(METAPOST_TAG))
+		.filter(
+			(gist) => gist.description && gist.description.includes(METAPOST_TAG),
+		)
 		.map(formatGist);
 }
 
