@@ -422,7 +422,9 @@ async def user_view(username: str, request: Request):
                 detail_url = f"{GITHUB_API_BASE}/gists/{gist['id']}"
 
                 gist_detail_response = requests.get(
-                    detail_url, auth=(GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET), timeout=5
+                    detail_url,
+                    auth=(GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET),
+                    timeout=60,
                 )
                 if gist_detail_response.status_code != 200:
                     continue
